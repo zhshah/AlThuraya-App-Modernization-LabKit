@@ -730,6 +730,8 @@ code .</code></pre>
       <li><strong>The treasury service</strong> – the Java service the portal calls for bank accounts, cash and payment runs: <a href="http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service/">http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service</a></li>
     </ol>
     <div class="expect"><p>Both pages open, and the portal shows data.</p></div>
+    <figure class="shot"><img src="images/00-portal-dashboard.png" alt="Group Finance Portal, Group dashboard: revenue, EBITDA, cash and deposits, payables, receivables and approvals, a revenue-versus-budget chart and cash by bank" loading="lazy"><figcaption>The portal today: the <strong>Group dashboard</strong> with demo data for the six group entities.</figcaption></figure>
+    <figure class="shot"><img src="images/00-portal-about.png" alt="About Group Finance Portal dialog, Platform section: server CONTOSO-WEB01, web tier IIS 10.0 with .NET Framework 4.8 and ASP.NET MVC 5.2.9, database SQL Server 16 Express, treasury service Java 1.8, Spring Boot 2.7.18, Apache Tomcat 9.0.98" loading="lazy"><figcaption>User menu → <strong>About</strong>: the platform before the migration. In Part 6 the same dialog shows .NET 10 with ASP.NET Core, Azure SQL and Java 21.</figcaption></figure>
   </article>
 
   <article class="step" id="s3-2">
@@ -1143,7 +1145,7 @@ $treasury = 'https://app-treasury-0720c-<span class="v" data-v="team">team1</spa
       <li>In the Azure portal, open the resource group <code>rg-finance-<span class="v" data-v="team">team1</span></code>: the two web apps, the SQL server with two databases, the storage account, Application Insights and Communication Services. On a web app, <strong>Identity</strong> shows its managed identity.</li>
     </ol>
     <div class="expect"><ul>
-      <li><strong>About</strong> shows Linux, .NET 10 and Azure SQL instead of Windows, IIS and SQL Server Express.</li>
+      <li><strong>About</strong> shows Kestrel / ASP.NET Core on .NET 10, an Azure SQL database (<em>SQL Azure</em>) and Java 21 – instead of IIS, .NET Framework 4.8, SQL Server Express and Java 8.</li>
       <li><code>/health</code> reports <code>Healthy</code>.</li>
       <li>No passwords or keys in any app setting – only server names, database names and endpoints.</li>
       <li>The same kinds of resources as in <a href="#result">The result</a> below, with your names.</li>

@@ -1,3 +1,4 @@
 # Windows line endings in every checkout, as in the application repository.
 * text=auto eol=crlf
 *.png binary
+*.pdf binary

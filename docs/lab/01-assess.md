@@ -12,7 +12,12 @@ The lab VM `contoso-onprem-0720c.swedencentral.cloudapp.azure.com` is the custom
 | **Treasury service** | <http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service> | The Java service behind the portal (bank accounts, cash, payment runs) – Java 8 on Tomcat, port 8080 |
 
 1. Open the **portal**. Look around: dashboard, **My approvals**, **Payment runs**, **Treasury & cash**, the Arabic UI (**عربي**). Approve an invoice – it is saved in SQL Server.
+
+   ![Group Finance Portal – Group dashboard with demo data](images/00-portal-dashboard.png)
+
 2. Open the user menu → **About**: Windows Server, IIS 10, .NET Framework 4.8, SQL Server Express, and the treasury service on Java 8 / Spring Boot 2.7 / Tomcat 9.
+
+   ![About dialog on the lab VM: CONTOSO-WEB01, IIS 10, .NET Framework 4.8, SQL Server Express, Java 8 / Spring Boot 2.7 / Tomcat 9](images/00-portal-about.png)
 3. Open the **treasury service** – the Java service's status page.
 4. Optional: RDP to the VM (`mstsc /v:contoso-onprem-0720c.swedencentral.cloudapp.azure.com`, user `contosoadmin`) and look at IIS Manager, the `Tomcat9` service, SSMS and `C:\ThurayaData` (bank files, e-mail pickup folder, log files).
 5. Record the **behaviour baseline** – the same test proves the migrated app later. It takes the two addresses above:

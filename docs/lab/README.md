@@ -12,7 +12,7 @@
 
 > GitHub Copilot modernization does it end to end – assessment, plans, code changes, tests, the Azure resources and the deployment. You review, decide and approve – *humans stay in the loop at every step*.
 
-**Run the lab from [lab-guide.html](lab-guide.html)** – open it in a browser. It is the one guide for participants and presenters: one path, step by step, with copy buttons, progress ticks and your own values filled into every command. The Markdown pages below are the detailed reference for presenters, including optional alternatives such as the Modernize CLI. Everything – guide, lab scripts and application – is in the lab-kit repository [zhshah/AlThuraya-App-Modernization-LabKit](https://github.com/zhshah/AlThuraya-App-Modernization-LabKit); participants clone only the application, [zhshah/AlThuraya-App-Modernization-Lab](https://github.com/zhshah/AlThuraya-App-Modernization-Lab).
+**Run the lab from [lab-guide.html](lab-guide.html)** – open it in a browser. It is the one guide for participants and presenters: one path, step by step, with copy buttons, progress ticks and your own values filled into every command. To read it on GitHub, open the PDF version [lab-guide.pdf](lab-guide.pdf); after changing the guide, regenerate it with `./docs/lab/Export-LabGuidePdf.ps1`. The Markdown pages below are the detailed reference for presenters, including optional alternatives such as the Modernize CLI. Everything – guide, lab scripts and application – is in the lab-kit repository [zhshah/AlThuraya-App-Modernization-LabKit](https://github.com/zhshah/AlThuraya-App-Modernization-LabKit); participants clone only the application, [zhshah/AlThuraya-App-Modernization-Lab](https://github.com/zhshah/AlThuraya-App-Modernization-Lab).
 
 ## Before → after
 

@@ -1,0 +1,24 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="csrf-token" content="@ViewBag.CsrfToken">
+  <title>Group Finance Portal &#183; Al Thuraya Holding</title>
+  <link rel="stylesheet" href="@Url.Content("~/assets/app.css")?v=@ViewBag.AssetVersion">
+</head>
+<body>
+  <div id="splash" class="splash" role="status" aria-live="polite"></div>
+  <div id="app" class="app" hidden></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <noscript>The Group Finance Portal requires JavaScript.</noscript>
+  <script src="@Url.Content("~/portal/data")"></script>
+  <script src="@Url.Content("~/assets/i18n.js")?v=@ViewBag.AssetVersion"></script>
+  <script src="@Url.Content("~/assets/app.js")?v=@ViewBag.AssetVersion"></script>
+</body>
+</html>

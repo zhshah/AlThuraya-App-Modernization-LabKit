@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab guide · Modernize a .NET Framework + Java app to Azure PaaS with GitHub Copilot modernization</title>
+<script>
+  (() => {
+    const param = new URLSearchParams(window.location.search).get("scoutTheme");
+    const theme =
+      param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+<script>
+  (() => {
+    try {
+      const saved = localStorage.getItem("ghcpLab.theme");
+      if (saved && !new URLSearchParams(window.location.search).get("scoutTheme")) {
+        document.documentElement.setAttribute("data-theme", saved);
+      }
+    } catch (e) { /* storage blocked: keep the detected theme */ }
+  })();
+</script>
+<style>
+:root {
+  color-scheme: light;
+  --cp-bg: #f7f4ef;
+  --cp-bg-elevated: #fcfbf8;
+  --cp-surface: #ffffff;
+  --cp-surface-soft: #f5f5f5;
+  --cp-border: #dedede;
+  --cp-border-strong: #919191;
+  --cp-text: #242424;
+  --cp-text-muted: #5c5c5c;
+  --cp-text-soft: #6f6f6f;
+  --cp-accent: #b11f4b;
+  --cp-accent-hover: #9a1a41;
+  --cp-accent-soft: rgba(177, 31, 75, 0.08);
+  --cp-accent-fg: #ffffff;
+  --cp-success: #16a34a;
+  --cp-danger: #dc2626;
+  --cp-warning: #f59e0b;
+  --cp-link: #0078d4;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+  --cp-overlay: rgba(255, 255, 255, 0.8);
+  --cp-panel: rgba(255, 255, 255, 0.86);
+  --cp-panel-strong: rgba(255, 255, 255, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.55);
+  --cp-highlight: rgba(177, 31, 75, 0.12);
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --cp-bg: #3d3b3a;
+  --cp-bg-elevated: #343231;
+  --cp-surface: #292929;
+  --cp-surface-soft: #2e2e2e;
+  --cp-border: #474747;
+  --cp-border-strong: #5f5f5f;
+  --cp-text: #dedede;
+  --cp-text-muted: #919191;
+  --cp-text-soft: #b0b0b0;
+  --cp-accent: #fd8ea1;
+  --cp-accent-hover: #fb7b91;
+  --cp-accent-soft: rgba(253, 142, 161, 0.14);
+  --cp-accent-fg: #1a1a1a;
+  --cp-success: #4ade80;
+  --cp-danger: #f87171;
+  --cp-warning: #fbbf24;
+  --cp-link: #4da6ff;
+  --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+  --cp-overlay: rgba(41, 41, 41, 0.88);
+  --cp-panel: rgba(41, 41, 41, 0.72);
+  --cp-panel-strong: rgba(41, 41, 41, 0.96);
+  --cp-sheen: rgba(255, 255, 255, 0.04);
+  --cp-highlight: rgba(253, 142, 161, 0.12);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body {
+  margin: 0;
+  background: var(--cp-bg);
+  color: var(--cp-text);
+  font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+a { color: var(--cp-link); }
+code, pre, kbd { font-family: Consolas, "Courier New", Courier, monospace; }
+h1, h2, h3, h4 { line-height: 1.3; }
+h1 { font-size: 30px; margin: 4px 0 12px; }
+h2 { font-size: 24px; margin: 0; }
+h3 { font-size: 18px; margin: 0; }
+h4 { font-size: 15px; margin: 16px 0 6px; }
+ul, ol { padding-left: 22px; }
+li { margin: 4px 0; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 24px;
+  background: var(--cp-panel-strong);
+  border-bottom: 1px solid var(--cp-border);
+}
+.topbar .brand { font-weight: 700; }
+.topbar .sub { color: var(--cp-text-muted); font-size: 14px; }
+.topbar .spacer { flex: 1; }
+.btn {
+  font: inherit; font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 0.625rem;
+  border: 1px solid var(--cp-border);
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--cp-border-strong); }
+.btn:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--cp-accent); outline-offset: 2px; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  gap: 32px;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 24px;
+}
+nav.toc {
+  position: sticky; top: 72px; align-self: start;
+  max-height: calc(100vh - 96px); overflow: auto;
+  font-size: 14px;
+  padding-right: 4px;
+}
+.progress-box {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.progress-box .count { font-weight: 600; font-size: 13px; }
+.progress-bar {
+  height: 8px; margin: 8px 0 10px;
+  border-radius: 999px;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--cp-border);
+  overflow: hidden;
+}
+.progress-bar span { display: block; height: 100%; width: 0; background: var(--cp-accent); transition: width 0.2s; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; }
+nav.toc li { margin: 0; }
+nav.toc a {
+  display: block;
+  padding: 3px 8px;
+  border-radius: 0.625rem;
+  color: var(--cp-text-muted);
+  text-decoration: none;
+}
+nav.toc a:hover, nav.toc a.active { background: var(--cp-accent-soft); color: var(--cp-text); }
+nav.toc a.part-link { color: var(--cp-text); font-weight: 600; margin-top: 8px; }
+nav.toc ol.sub a { padding-left: 22px; font-size: 13px; }
+nav.toc a.is-done::after { content: " ✓"; color: var(--cp-success); }
+
+main { min-width: 0; }
+.hero { padding: 8px 0 4px; }
+.eyebrow { color: var(--cp-accent); font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin: 0; }
+.lead { font-size: 17px; color: var(--cp-text-muted); max-width: 900px; }
+
+.part { margin-top: 44px; }
+.part-head {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding-bottom: 12px; margin-bottom: 16px;
+  border-bottom: 2px solid var(--cp-accent);
+}
+.part-letter {
+  flex: none;
+  width: 46px; height: 46px;
+  border-radius: 0.625rem;
+  display: grid; place-items: center;
+  background: var(--cp-accent); color: var(--cp-accent-fg);
+  font-weight: 700; font-size: 21px;
+}
+.part-meta { color: var(--cp-text-muted); margin: 2px 0 0; font-size: 14px; }
+.role {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--cp-border);
+  background: var(--cp-surface-soft);
+  color: var(--cp-text-muted);
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.role.presenter { color: var(--cp-accent); border-color: var(--cp-highlight); background: var(--cp-accent-soft); }
+
+.card, .step {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 16px;
+  box-shadow: 0 0 2px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.14);
+  padding: 18px 24px;
+  margin: 16px 0;
+}
+.card > h3 { margin-bottom: 8px; }
+.step-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.step-num { font-weight: 700; color: var(--cp-accent); min-width: 36px; }
+.step-time { margin-left: auto; color: var(--cp-text-muted); font-size: 13px; }
+.done-box { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--cp-text-muted); cursor: pointer; user-select: none; }
+.done-box input { width: 18px; height: 18px; margin: 0; accent-color: var(--cp-accent); cursor: pointer; }
+.step.is-done { border-color: var(--cp-success); }
+.step.is-done .step-num::after { content: " ✓"; color: var(--cp-success); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 2px; }
+.chip {
+  font-size: 12px; line-height: 1.6;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--cp-accent-soft); color: var(--cp-accent);
+  border: 1px solid var(--cp-highlight);
+  white-space: nowrap;
+}
+.chip.neutral { background: var(--cp-surface-soft); color: var(--cp-text-muted); border-color: var(--cp-border); }
+
+.lbl {
+  display: block;
+  margin: 14px 0 4px;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--cp-text-soft);
+}
+pre {
+  position: relative;
+  margin: 8px 0;
+  padding: 12px 14px;
+  padding-right: 72px;
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--cp-border);
+  border-radius: 0.625rem;
+  overflow-x: auto;
+  font-size: 13px; line-height: 1.55;
+  white-space: pre;
+}
+pre .copy { position: absolute; top: 6px; right: 6px; font-family: "Segoe UI", Aptos, Calibri, sans-serif; font-size: 12px; padding: 2px 10px; }
+:not(pre) > code {
+  background: var(--cp-surface-soft);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  padding: 0 4px;
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+.v { color: var(--cp-accent); font-weight: 600; }
+.cmt { color: var(--cp-text-soft); }
+
+.prompt {
+  position: relative;
+  margin: 10px 0;
+  padding: 12px 16px; padding-right: 84px;
+  border-left: 4px solid var(--cp-accent);
+  background: var(--cp-accent-soft);
+  border-radius: 0 0.625rem 0.625rem 0;
+}
+.prompt .copy { position: absolute; top: 8px; right: 8px; font-size: 12px; padding: 2px 10px; }
+.prompt-text { white-space: pre-wrap; }
+.prompt-label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cp-accent); margin-bottom: 4px; }
+
+.callout {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--cp-border);
+  border-left-width: 4px;
+  border-radius: 0.625rem;
+  background: var(--cp-bg-elevated);
+}
+.callout.tip { border-left-color: var(--cp-link); }
+.callout.warn { border-left-color: var(--cp-warning); }
+.callout.danger { border-left-color: var(--cp-danger); }
+.callout.ok { border-left-color: var(--cp-success); }
+.callout p { margin: 4px 0; }
+.expect {
+  margin: 14px 0 2px;
+  padding: 8px 14px;
+  border: 1px solid var(--cp-border);
+  border-left: 4px solid var(--cp-success);
+  border-radius: 0.625rem;
+  background: var(--cp-bg-elevated);
+}
+.expect::before { content: "You should see"; display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cp-success); }
+.expect p, .expect ul { margin: 4px 0; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--cp-border); }
+th { background: var(--cp-surface-soft); font-weight: 600; }
+td code { white-space: nowrap; }
+td.wrap code { white-space: normal; }
+
+details { margin: 12px 0; border: 1px solid var(--cp-border); border-radius: 0.625rem; background: var(--cp-bg-elevated); }
+details > summary { cursor: pointer; padding: 8px 14px; font-weight: 600; }
+details > div { padding: 0 14px 10px; }
+
+.flow { display: flex; flex-wrap: wrap; gap: 10px; }
+.flow a.stage {
+  flex: 1 1 130px;
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--cp-border);
+  border-radius: 0.625rem;
+  background: var(--cp-bg-elevated);
+  color: var(--cp-text); text-decoration: none;
+}
+.flow a.stage:hover { border-color: var(--cp-accent); }
+.flow .stage-l { color: var(--cp-accent); font-weight: 700; font-size: 13px; }
+.flow small { color: var(--cp-text-muted); }
+
+.arch { display: grid; grid-template-columns: 1fr 120px 1fr; gap: 14px; align-items: center; }
+.zone { border: 2px dashed var(--cp-border-strong); border-radius: 16px; padding: 12px 14px; background: var(--cp-bg-elevated); }
+.zone.azure { border-style: solid; border-color: var(--cp-accent); }
+.zone-title { font-weight: 700; margin-bottom: 4px; }
+.node { background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: 0.625rem; padding: 7px 10px; margin: 8px 0; font-size: 13px; color: var(--cp-text-muted); }
+.node b { display: block; color: var(--cp-text); font-size: 14px; }
+.arch-arrow { text-align: center; color: var(--cp-accent); font-size: 34px; line-height: 1; }
+.arch-arrow small { display: block; font-size: 12px; font-weight: 600; margin-top: 6px; }
+
+.vars { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 10px; }
+.vars label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--cp-text-muted); }
+.vars input {
+  font: inherit; font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 0.625rem;
+  border: 1px solid var(--cp-border);
+  background: var(--cp-surface);
+  color: var(--cp-text);
+}
+.muted { color: var(--cp-text-muted); }
+.small { font-size: 13px; }
+.checklist { list-style: none; padding-left: 0; }
+.checklist li::before { content: "☐ "; color: var(--cp-accent); }
+figure.shot { margin: 14px 0; }
+figure.shot img { display: block; max-width: 100%; height: auto; border: 1px solid var(--cp-border); border-radius: 0.625rem; }
+figure.shot figcaption { margin-top: 6px; font-size: 13px; color: var(--cp-text-muted); }
+footer { margin: 56px 0 24px; padding-top: 16px; border-top: 1px solid var(--cp-border); color: var(--cp-text-muted); font-size: 13px; }
+
+@media (max-width: 980px) {
+  .topbar { padding: 8px 12px; gap: 8px; }
+  .topbar .sub { display: none; }
+  .layout { grid-template-columns: 1fr; padding: 16px 12px; }
+  nav.toc { position: static; max-height: none; }
+  .arch { grid-template-columns: 1fr; }
+  .arch-arrow { transform: rotate(90deg); }
+}
+@media print {
+  .topbar, nav.toc, .copy, .done-box { display: none !important; }
+  .layout { display: block; padding: 0; }
+  .card, .step { box-shadow: none; break-inside: avoid; }
+  figure.shot { break-inside: avoid; }
+  details { border: none; }
+  pre { white-space: pre-wrap; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <span class="brand">GitHub Copilot modernization · Hands-on lab</span>
+  <span class="sub">Group Finance Portal → Azure</span>
+  <span class="spacer"></span>
+  <button class="btn" id="print-btn" type="button">Print / PDF</button>
+  <button class="btn" id="theme-toggle" type="button">Light / dark</button>
+</header>
+
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <div class="progress-box">
+    <div class="count" id="progress-count">0 steps done</div>
+    <div class="progress-bar" aria-hidden="true"><span id="progress-fill"></span></div>
+    <button class="btn" id="reset-progress" type="button">Clear ticks</button>
+  </div>
+  <ol>
+    <li><a class="part-link" href="#overview">Start here</a></li>
+    <li><a class="part-link" href="#values">Your lab at a glance</a></li>
+    <li><a class="part-link" href="#part-1">1 · Prepare the lab (presenter)</a>
+      <ol class="sub">
+        <li><a href="#s1-1">1.1 Sign in to Azure</a></li>
+        <li><a href="#s1-2">1.2 Build the lab (first time only)</a></li>
+        <li><a href="#s1-3">1.3 Check that it works</a></li>
+        <li><a href="#s1-4">1.4 Prepare the participants</a></li>
+        <li><a href="#s1-5">1.5 On the event day</a></li>
+      </ol>
+    </li>
+    <li><a class="part-link" href="#part-2">2 · Set up your laptop</a>
+      <ol class="sub">
+        <li><a href="#s2-1">2.1 Install the tools</a></li>
+        <li><a href="#s2-2">2.2 Get the code</a></li>
+        <li><a href="#s2-3">2.3 Check your laptop</a></li>
+      </ol>
+    </li>
+    <li><a class="part-link" href="#part-3">3 · Assess the application</a>
+      <ol class="sub">
+        <li><a href="#where">Where you work in VS Code</a></li>
+        <li><a href="#s3-1">3.1 Look at the running app</a></li>
+        <li><a href="#s3-2">3.2 Record the baseline test</a></li>
+        <li><a href="#s3-3">3.3 Run the assessment</a></li>
+        <li><a href="#s3-4">3.4 Read the report</a></li>
+      </ol>
+    </li>
+    <li><a class="part-link" href="#part-4">4 · Decide and plan</a>
+      <ol class="sub">
+        <li><a href="#s4-1">4.1 Get the customer's decision</a></li>
+        <li><a href="#s4-2">4.2 Ask Copilot for the plans</a></li>
+        <li><a href="#s4-3">4.3 Review the plans</a></li>
+      </ol>
+    </li>
+    <li><a class="part-link" href="#part-5">5 · Modernize and deploy</a>
+      <ol class="sub">
+        <li><a href="#files">What Copilot writes where</a></li>
+        <li><a href="#s5-1">5.1 Start the run</a></li>
+        <li><a href="#s5-2">5.2 Follow the progress</a></li>
+        <li><a href="#s5-3">5.3 Read the final summary</a></li>
+        <li><a href="#s5-4">5.4 See what changed</a></li>
+      </ol>
+    </li>
+    <li><a class="part-link" href="#part-6">6 · Test on Azure</a>
+      <ol class="sub">
+        <li><a href="#s6-1">6.1 Run the test on Azure</a></li>
+        <li><a href="#s6-2">6.2 Look at it on Azure</a></li>
+        <li><a href="#result">The result: everything on Azure</a></li>
+        <li><a href="#s6-3">6.3 Clean up</a></li>
+      </ol>
+    </li>
+    <li><a class="part-link" href="#part-7">7 · Run the day (presenter)</a>
+      <ol class="sub">
+        <li><a href="#agenda">Agenda</a></li>
+        <li><a href="#demo">Customer demo</a></li>
+        <li><a href="#trouble">Troubleshooting</a></li>
+        <li><a href="#reset">Reset and clean up</a></li>
+        <li><a href="#tested">What was tested</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+
+<main>
+<section class="hero" id="top">
+  <p class="eyebrow">Hands-on lab · GitHub Copilot modernization</p>
+  <h1>Move a legacy .NET Framework and Java application to Azure – with GitHub Copilot doing the work</h1>
+  <p class="lead">Assess the code, get the customer's go-ahead, and let GitHub Copilot modernization do the rest end to end: modernize both applications, create the Azure resources and deploy the apps. Then prove they still work. One guide, one path, step by step.</p>
+</section>
+
+<section class="part" id="overview">
+  <div class="card">
+    <h3>How this guide works</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Who</th><th>Does</th></tr></thead>
+      <tbody>
+        <tr><td><span class="role presenter">Presenter</span></td><td><strong>Part 1</strong> once, before the event. <strong>Part 7</strong> on the day.</td></tr>
+        <tr><td><span class="role">Everyone</span></td><td><strong>Parts 2 to 6, in order</strong> – participants, and the presenter when rehearsing.</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li>Every step tells you <strong>what to do</strong> and <strong>what you should see</strong>. When it matches, tick <strong>Done</strong>.</li>
+      <li><strong>All addresses and names are already in the commands.</strong> Click <strong>Copy</strong>, paste, run. Only your team name can change – see <a href="#values">Your lab at a glance</a>.</li>
+      <li><strong>In VS Code you use the modernization panel once</strong>, to start (3.3). After that everything happens in one Copilot Chat – see <a href="#where">Where you work in VS Code</a>.</li>
+      <li><strong>Copilot does the work.</strong> Don't change the code yourself. Read what Copilot shows you, then approve.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>The scenario</h3>
+    <p><strong>Al Thuraya Holding</strong> (fictitious) runs its <strong>Group Finance Portal</strong> on one Windows server in its own data centre: an <strong>ASP.NET MVC 5 portal on .NET Framework 4.8</strong> in IIS, a <strong>Java 8 / Spring Boot 2.7 treasury service</strong> in Tomcat, and two <strong>SQL Server</strong> databases. The CFO wants it on Azure – without a rewrite project.</p>
+    <div class="arch">
+      <div class="zone">
+        <div class="zone-title">Before – the customer's server (the lab VM)</div>
+        <div class="node"><b>IIS 10</b>Portal · ASP.NET MVC 5 · .NET Framework 4.8</div>
+        <div class="node"><b>Tomcat 9</b>Treasury service · Java 8 · Spring Boot 2.7</div>
+        <div class="node"><b>SQL Server Express</b>Two databases · Windows authentication and a SQL password</div>
+        <div class="node"><b>Local disk and Windows</b>Bank files, reports, e-mail folder, log files, Event Log</div>
+      </div>
+      <div class="arch-arrow" aria-hidden="true">→<small>GitHub Copilot modernization</small></div>
+      <div class="zone azure">
+        <div class="zone-title">After – Azure</div>
+        <div class="node"><b>App Service</b>Portal · .NET 10</div>
+        <div class="node"><b>App Service</b>Treasury service · Java 21 · Spring Boot 3</div>
+        <div class="node"><b>Azure SQL Database</b>Managed identities – no passwords</div>
+        <div class="node"><b>Blob Storage and Application Insights</b>Bank files and reports · monitoring</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>The journey</h3>
+    <div class="flow">
+      <a class="stage" href="#part-1"><span class="stage-l">1</span><b>Prepare the lab</b><small>Presenter, once</small></a>
+      <a class="stage" href="#part-2"><span class="stage-l">2</span><b>Set up</b><small>Your laptop</small></a>
+      <a class="stage" href="#part-3"><span class="stage-l">3</span><b>Assess</b><small>Findings report</small></a>
+      <a class="stage" href="#part-4"><span class="stage-l">4</span><b>Decide &amp; plan</b><small>Customer go-ahead</small></a>
+      <a class="stage" href="#part-5"><span class="stage-l">5</span><b>Modernize &amp; deploy</b><small>Copilot changes the code and deploys it</small></a>
+      <a class="stage" href="#part-6"><span class="stage-l">6</span><b>Test</b><small>Azure, same behaviour</small></a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>The tools</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Tool</th><th>What it does here</th><th>Part</th></tr></thead>
+      <tbody>
+        <tr><td>PowerShell 7 and Azure CLI</td><td>Run the lab scripts and the Azure commands – Copilot's deployment uses your Azure CLI sign-in</td><td>1, 5, 6</td></tr>
+        <tr><td>Lab scripts (<code>onprem-vm/</code>)</td><td>Create, refresh and remove the "on-premises" VM</td><td>1, 7</td></tr>
+        <tr><td>VS Code with <span class="chip">GitHub Copilot modernization</span> – chat agent <code>modernize</code></td><td>Assessment, plans, code changes and the deployment to Azure</td><td>3–5</td></tr>
+        <tr><td><span class="chip">AppCAT</span></td><td>The analysis engine behind the assessment – installed automatically</td><td>3</td></tr>
+        <tr><td>Bicep and a deployment script – written by Copilot</td><td>Create the Azure resources and deploy both apps (<code>infra/</code>)</td><td>5</td></tr>
+        <tr><td><code>Invoke-SmokeTest.ps1</code></td><td>Proves the app behaves the same before and after</td><td>1, 3, 6</td></tr>
+        <tr><td>Remote Desktop</td><td>Look inside the "on-premises" server – optional</td><td>1</td></tr>
+        <tr><td>git</td><td>Every Copilot task becomes a commit you can review</td><td>2–5</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="part" id="values">
+  <div class="card">
+    <h3>Your lab at a glance</h3>
+    <p>These are all the addresses you use. Every command in this guide already contains them.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>What</th><th>Address</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><th colspan="3">Today – on the lab VM, the customer's "on-premises" server</th></tr>
+        <tr><td><strong>Portal</strong></td><td><a href="http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com/">http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com</a></td><td>The website the finance team uses – .NET Framework 4.8 on IIS</td></tr>
+        <tr><td><strong>Treasury service</strong></td><td><a href="http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service/">http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service</a></td><td>The Java service behind the portal: bank accounts, cash and payment runs – Java 8 on Tomcat, port 8080 of the same VM</td></tr>
+        <tr><td><strong>Remote Desktop</strong></td><td><code>contoso-onprem-0720c.swedencentral.cloudapp.azure.com</code></td><td>Sign-in to the VM itself – user <code>contosoadmin</code>, password from your presenter</td></tr>
+        <tr><th colspan="3">The code</th></tr>
+        <tr><td><strong>Repository</strong></td><td><a href="https://github.com/zhshah/AlThuraya-App-Modernization-Lab">github.com/zhshah/AlThuraya-App-Modernization-Lab</a></td><td>The application's source code – the same code that runs on the VM. Private: your presenter gives you access.</td></tr>
+        <tr><th colspan="3">After Part 5 – on Azure, created by Copilot</th></tr>
+        <tr><td><strong>Portal</strong></td><td><code>https://app-portal-0720c-<span class="v" data-v="team">team1</span>.azurewebsites.net</code></td><td>The same portal on App Service, .NET 10</td></tr>
+        <tr><td><strong>Treasury service</strong></td><td><code>https://app-treasury-0720c-<span class="v" data-v="team">team1</span>.azurewebsites.net</code></td><td>The same service on App Service, Java 21</td></tr>
+      </tbody>
+    </table></div>
+    <div class="vars">
+      <label>Your team name
+        <input data-var="team" placeholder="team1" maxlength="10" autocomplete="off" spellcheck="false"></label>
+    </div>
+    <p class="small muted">Working alone? Keep <code>team1</code>. At an event, your presenter gives each team a name – <code>team1</code>, <code>team2</code>, … – and all Azure names in this guide change with it. <code>0720c</code> is this lab's ID; it keeps the Azure names unique.</p>
+  </div>
+</section>
+
+<section class="part" id="part-1">
+  <div class="part-head">
+    <div class="part-letter">1</div>
+    <div>
+      <h2>Prepare the lab</h2>
+      <p class="part-meta"><span class="role presenter">Presenter</span> Run these from the lab kit folder (the one with <code>onprem-vm/</code>) in PowerShell 7</p>
+      <div class="chips"><span class="chip neutral">PowerShell 7</span><span class="chip neutral">Azure CLI</span><span class="chip neutral">Lab scripts</span><span class="chip neutral">Key Vault</span><span class="chip neutral">Remote Desktop</span></div>
+    </div>
+  </div>
+  <p>The lab is one Windows Server VM in Azure that plays the customer's on-premises server: IIS, SQL Server and Tomcat on one machine, running the portal and the treasury service with demo data. Your lab VM already exists: <code>vm-contoso-web01</code> in resource group <code>rg-contoso-onprem-swc</code>.</p>
+  <p>The lab kit – this guide, the lab scripts and the application – is the private repository <a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">zhshah/AlThuraya-App-Modernization-LabKit</a>. Run Part 1 from a clone of it: <code>git clone https://github.com/zhshah/AlThuraya-App-Modernization-LabKit.git</code>, then <code>cd AlThuraya-App-Modernization-LabKit</code>.</p>
+
+  <article class="step" id="s1-1">
+    <div class="step-head"><span class="step-num">1.1</span><h3>Sign in to Azure</h3><span class="step-time">5 min</span><label class="done-box"><input type="checkbox" data-step="s1-1">Done</label></div>
+    <span class="lbl">Do</span>
+    <pre><code>winget install Microsoft.PowerShell       <span class="cmt"># once - then use "PowerShell 7" for all lab commands</span>
+winget install Microsoft.AzureCLI         <span class="cmt"># once</span>
+az login                                  <span class="cmt"># choose the subscription that holds the lab when asked</span>
+az group show -n rg-contoso-onprem-swc --query location -o tsv</code></pre>
+    <div class="expect"><p>The last command prints <code>swedencentral</code>. If it says the resource group was not found, you are in the wrong subscription: run <code>az login</code> again and pick the other one. You need <strong>Contributor</strong> or <strong>Owner</strong> on that subscription.</p></div>
+  </article>
+
+  <article class="step" id="s1-2">
+    <div class="step-head"><span class="step-num">1.2</span><h3>Build the lab (first time only)</h3><span class="step-time">35–50 min</span><label class="done-box"><input type="checkbox" data-step="s1-2">Done</label></div>
+    <p><strong>Your lab already exists – skip this step.</strong> Run it only if the lab was removed and you need to build it again:</p>
+    <pre><code>./onprem-vm/Deploy-Lab.ps1 -ResourceGroup rg-contoso-onprem-swc -VnetResourceGroup sweden-central-vnet -VnetName Sweden-vNet -SubnetName default</code></pre>
+    <span class="lbl">What it does</span>
+    <p>Creates the VM in your existing network <code>Sweden-vNet</code> (open only to your internet address), installs IIS, SQL Server Express, Java 8 and Tomcat, builds and deploys both applications with demo data, and tests everything. It reuses the same names, so the addresses in this guide stay valid.</p>
+    <div class="callout tip"><p><strong>It stopped with an error?</strong> Run the same command again – it continues where it stopped.</p></div>
+    <div class="expect"><p>At the end it prints the portal, treasury and Remote Desktop addresses – the same as in <a href="#values">Your lab at a glance</a>.</p></div>
+  </article>
+
+  <article class="step" id="s1-3">
+    <div class="step-head"><span class="step-num">1.3</span><h3>Check that it works</h3><span class="step-time">5 min</span><label class="done-box"><input type="checkbox" data-step="s1-3">Done</label></div>
+    <span class="lbl">Do</span>
+    <ol>
+      <li>Open the portal: <a href="http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com/">http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com</a></li>
+      <li>Run the test. It needs the two addresses of the app – the portal and the treasury service:
+        <pre><code>$portal   = 'http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com'
+$treasury = 'http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service'
+./scripts/Invoke-SmokeTest.ps1 -PortalUrl $portal -TreasuryUrl $treasury</code></pre></li>
+      <li>Try Remote Desktop. The first line copies the VM password to your clipboard; sign in as <code>contosoadmin</code> and paste it:
+        <pre><code>az keyvault secret show --vault-name kv-contoso-onprem-0720c -n vm-admin-password --query value -o tsv | Set-Clipboard
+mstsc /v:contoso-onprem-0720c.swedencentral.cloudapp.azure.com</code></pre></li>
+    </ol>
+    <div class="expect"><p>The portal opens, the test ends with <code>SMOKE_TEST_PASSED</code>, and you can sign in to the VM.</p></div>
+  </article>
+
+  <article class="step" id="s1-4">
+    <div class="step-head"><span class="step-num">1.4</span><h3>Prepare the participants</h3><span class="step-time">before the event</span><label class="done-box"><input type="checkbox" data-step="s1-4">Done</label></div>
+    <ul class="checklist">
+      <li><strong>Azure:</strong> for each team a resource group – <code>rg-finance-team1</code>, <code>rg-finance-team2</code>, … – in which the team is <strong>Owner</strong>: Copilot's deployment gives the apps' managed identities their roles. Check that App Service (Linux, B1), Azure SQL and Communication Services are available in Sweden Central.</li>
+      <li><strong>Azure Policy:</strong> does a policy in that subscription switch off public network access? Add your exemption to your prompt in 4.2, for example <em>Tag every resource SecurityControl=Ignore.</em> – our test did this.</li>
+      <li><strong>GitHub Copilot:</strong> a licence with premium requests for everyone, with agent mode allowed by their organization.</li>
+      <li><strong>Code:</strong> add every participant's GitHub account to <a href="https://github.com/zhshah/AlThuraya-App-Modernization-Lab">zhshah/AlThuraya-App-Modernization-Lab</a> (Settings → Collaborators; read access is enough).</li>
+      <li><strong>Send them this guide</strong> – <code>lab-guide.html</code> together with its <code>images</code> and <code>sample-plans</code> folders – and ask them to finish Part 2 before the event.</li>
+      <li><strong>On the day, give them</strong> their team name – and the VM password (from 1.3) if they want to look inside the server.</li>
+    </ul>
+  </article>
+
+  <article class="step" id="s1-5">
+    <div class="step-head"><span class="step-num">1.5</span><h3>On the event day</h3><span class="step-time">10 min</span><label class="done-box"><input type="checkbox" data-step="s1-5">Done</label></div>
+    <span class="lbl">Do – connected to the venue network</span>
+    <pre><code>$myIp = (Invoke-RestMethod https://api.ipify.org).ToString().Trim() + '/32'
+foreach ($rule in 'Allow-RDP-From-Presenter', 'Allow-HTTP-From-Presenter', 'Allow-Tomcat-From-Presenter') {
+    az network nsg rule update -g rg-contoso-onprem-swc --nsg-name nsg-vm-contoso-web01 -n $rule --source-address-prefixes $myIp -o none
+}
+"VM open to $myIp"
+./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData</code></pre>
+    <span class="lbl">What it does</span>
+    <p>The VM only accepts connections from allowed internet addresses. The first lines allow the venue's address – so everyone on the venue network can open the portal. The last line puts fresh demo data and the latest scripts on the VM (3–5 minutes) and starts the VM if it was stopped.</p>
+    <div class="callout warn"><p><strong>The site doesn't load?</strong> Almost always the network changed. Run the first four lines again from the network you are on.</p></div>
+    <div class="expect"><p><code>VM open to …</code>, then <code>SMOKE_TEST_PASSED</code> at the end of the update.</p></div>
+  </article>
+</section>
+
+<section class="part" id="part-2">
+  <div class="part-head">
+    <div class="part-letter">2</div>
+    <div>
+      <h2>Set up your laptop</h2>
+      <p class="part-meta"><span class="role">Everyone</span> About 30 minutes · do it before the event – the downloads are large</p>
+      <div class="chips"><span class="chip neutral">winget</span><span class="chip neutral">VS Code</span><span class="chip">GitHub Copilot modernization</span><span class="chip neutral">.NET 10 SDK</span><span class="chip neutral">Build Tools</span><span class="chip neutral">git</span></div>
+    </div>
+  </div>
+  <p>You need <strong>Windows 10 or 11</strong>, a <strong>GitHub account with GitHub Copilot</strong> (added to the lab repository by your presenter), and <strong>Owner</strong> rights on your team's Azure resource group <code>rg-finance-<span class="v" data-v="team">team1</span></code>.</p>
+
+  <article class="step" id="s2-1">
+    <div class="step-head"><span class="step-num">2.1</span><h3>Install the tools</h3><span class="step-time">20 min</span><label class="done-box"><input type="checkbox" data-step="s2-1">Done</label></div>
+    <span class="lbl">Do – in PowerShell; accept the Windows prompts</span>
+    <pre><code>winget install Microsoft.VisualStudioCode
+winget install Microsoft.DotNet.SDK.10
+winget install Git.Git
+winget install Microsoft.AzureCLI
+winget install Microsoft.Azd
+winget install OpenJS.NodeJS.LTS
+winget install Microsoft.VisualStudio.2022.BuildTools --override "--quiet --wait --add Microsoft.VisualStudio.Workload.WebBuildTools;includeRecommended --add Microsoft.Net.Component.4.8.TargetingPack"</code></pre>
+    <p>Then <strong>open a new PowerShell window</strong> and add the VS Code extensions:</p>
+    <pre><code>code --install-extension vscjava.migrate-java-to-azure
+code --install-extension ms-dotnettools.upgrade-agent
+code --install-extension ms-dotnettools.csdevkit</code></pre>
+    <span class="lbl">Good to know</span>
+    <ul>
+      <li>The Build Tools are needed to assess the .NET Framework project. Already have Visual Studio 2022 or 2026 with <em>ASP.NET and web development</em>? Skip that line.</li>
+      <li>You don't need Java: Copilot downloads Java 21 and Maven when it needs them.</li>
+      <li>Node.js: Copilot's deployment used it to load the demo data into Azure SQL.</li>
+    </ul>
+  </article>
+
+  <article class="step" id="s2-2">
+    <div class="step-head"><span class="step-num">2.2</span><h3>Get the code</h3><span class="step-time">5 min</span><label class="done-box"><input type="checkbox" data-step="s2-2">Done</label></div>
+    <span class="lbl">Do – in a new PowerShell window</span>
+    <pre><code>mkdir C:\Lab -Force
+cd C:\Lab
+git clone https://github.com/zhshah/AlThuraya-App-Modernization-Lab.git finance-portal
+cd finance-portal
+git checkout -b modernize/<span class="v" data-v="team">team1</span>
+code .</code></pre>
+    <ol>
+      <li>The first time, git asks you to sign in to GitHub – use the account your presenter added.</li>
+      <li><code>code .</code> opens the folder <code>C:\Lab\finance-portal</code> in VS Code. When VS Code asks whether you trust the authors, choose <strong>Yes, I trust the authors</strong> – the agents don't run otherwise.</li>
+      <li>Sign in to GitHub Copilot: Accounts icon, bottom left.</li>
+      <li>Open the VS Code terminal (<strong>Terminal → New Terminal</strong>) and sign in to Azure: <code>az login</code>. Use this terminal for all the following commands.</li>
+    </ol>
+    <span class="lbl">What you get</span>
+    <p>The customer's application exactly as it runs on the lab VM, in <code>C:\Lab\finance-portal</code>: <code>src/dotnet</code> (portal), <code>src/java/treasury-service</code>, <code>database</code> and <code>scripts</code>.</p>
+    <div class="expect"><p>The VS Code Explorer shows <strong>FINANCE-PORTAL</strong> with <code>src</code>, <code>database</code> and <code>scripts</code>. Work in this window for the rest of the lab: GitHub Copilot modernization works on the folder that is open in VS Code.</p></div>
+    <div class="callout tip"><p><strong>Closed VS Code?</strong> Open the folder again: <strong>File → Open Folder…</strong> → <code>C:\Lab\finance-portal</code>.</p></div>
+    <div class="callout warn"><p><strong>Never push to <code>main</code></strong> – it must stay unchanged for the next session. To start over, delete the <code>C:\Lab\finance-portal</code> folder and clone again.</p></div>
+  </article>
+
+  <article class="step" id="s2-3">
+    <div class="step-head"><span class="step-num">2.3</span><h3>Check your laptop</h3><span class="step-time">2 min</span><label class="done-box"><input type="checkbox" data-step="s2-3">Done</label></div>
+    <span class="lbl">Do</span>
+    <pre><code>./scripts/Test-LabWorkstation.ps1</code></pre>
+    <span class="lbl">What it does</span>
+    <p>Checks the tools, the sign-ins and the internet access the lab needs. It changes nothing.</p>
+    <div class="expect"><p>The last line is <code>WORKSTATION_READY</code>. If it lists a <code>FAIL</code>, follow the fix it prints, then run it again.</p></div>
+    <div class="callout tip"><p>On the day, use a stable network: in Part 5 Copilot works for almost 4 hours and needs the internet the whole time.</p></div>
+  </article>
+</section>
+
+<section class="part" id="part-3">
+  <div class="part-head">
+    <div class="part-letter">3</div>
+    <div>
+      <h2>Assess the application</h2>
+      <p class="part-meta"><span class="role">Everyone</span> About 30 minutes</p>
+      <div class="chips"><span class="chip">GitHub Copilot modernization</span><span class="chip">modernize agent</span><span class="chip">AppCAT</span><span class="chip neutral">Invoke-SmokeTest.ps1</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="where">
+    <h3>Where you work in VS Code</h3>
+    <p>You use the GitHub Copilot modernization panel <strong>once</strong>, to start. After that, everything happens in <strong>one Copilot Chat</strong> – you don't go back to the panel.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Place</th><th>How you get there</th><th>What you do there</th></tr></thead>
+      <tbody>
+        <tr><td><strong>GitHub Copilot modernization</strong> panel</td><td>Its icon in the left bar → <strong>QuickStart</strong></td><td>Once: click <strong>Migrate to Azure</strong> (3.3)</td></tr>
+        <tr><td><strong>Copilot Chat</strong> – the chat <em>Migrate application to Azure</em></td><td>Opens by itself in 3.3. Closed it? Open the Chat, click <strong>←</strong> at its top and choose <em>Migrate application to Azure</em>.</td><td>Everything else: answer Copilot's questions (3.3), ask for the plans (4.2), run them and deploy (5.1)</td></tr>
+        <tr><td><strong>Assessment Report</strong> tab</td><td>Opens by itself next to your files when the assessment is done</td><td>Read the findings (3.4)</td></tr>
+        <tr><td><strong>Explorer</strong> – folder <code>.github/modernize</code></td><td>The top icon in the left bar</td><td>The saved reports, the plans and the live progress of every task (<a href="#files">What Copilot writes where</a>)</td></tr>
+        <tr><td><strong>Terminal</strong></td><td><strong>Terminal → New Terminal</strong></td><td>The smoke test and the git, dotnet and az commands</td></tr>
+      </tbody>
+    </table></div>
+    <h4>Settings at the bottom of the chat box</h4>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Setting</th><th>Choose</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Agent</strong> – shows <code>modernize</code></td><td><strong>modernize</strong></td><td>The GitHub Copilot modernization agent; <strong>Migrate to Azure</strong> selects it. If it shows <em>Ask</em> or <em>Plan</em>, click it and choose <strong>modernize</strong>. <em>Agent</em> works too – our test planned and ran the plans from a chat with <em>Agent</em>, using the same modernization tools.</td></tr>
+        <tr><td><strong>Model</strong> – next to it</td><td>The newest <strong>Claude Sonnet</strong>, for example <em>Claude Sonnet 5.5</em>. Not in your list: <strong>Auto</strong>.</td><td>Microsoft recommends Claude Sonnet models for GitHub Copilot modernization. Claude Opus works too – our test used Claude Opus 5.5 – but uses more premium requests. Keep the values shown next to the model, such as <em>Max · 1M</em> (thinking level and context size).</td></tr>
+        <tr><td><strong>Mode</strong> – under the box: <em>Interactive</em>, <em>Plan</em> or <em>Autopilot</em></td><td><strong>Interactive</strong></td><td>Copilot works step by step and asks when it needs you. With <em>Plan</em>, Copilot first shows a <strong>Review Plan</strong> card and waits – click <strong>Implement with Autopilot</strong> to start (our test ran Part 5 this way).</td></tr>
+        <tr><td><strong>Permissions</strong> – under the box</td><td><strong>Default permissions</strong>; in Part 5 <strong>Allow all</strong></td><td>With Default, Copilot asks before it runs a command – click <strong>Allow</strong>. Part 5 runs for hours: <strong>Allow all</strong> lets Copilot run commands without waiting for you.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <article class="step" id="s3-1">
+    <div class="step-head"><span class="step-num">3.1</span><h3>Look at the running app</h3><span class="step-time">5 min</span><label class="done-box"><input type="checkbox" data-step="s3-1">Done</label></div>
+    <p>The application has two parts, both running on the lab VM. Open each one:</p>
+    <ol>
+      <li><strong>The portal</strong> – the website the finance team uses: <a href="http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com/">http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com</a><br>Under <strong>My approvals</strong>, approve an invoice. User menu → <strong>About</strong> shows Windows Server, IIS, .NET Framework 4.8, SQL Server Express, Java 8 and Tomcat 9.</li>
+      <li><strong>The treasury service</strong> – the Java service the portal calls for bank accounts, cash and payment runs: <a href="http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service/">http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service</a></li>
+    </ol>
+    <div class="expect"><p>Both pages open, and the portal shows data.</p></div>
+  </article>
+
+  <article class="step" id="s3-2">
+    <div class="step-head"><span class="step-num">3.2</span><h3>Record the baseline test</h3><span class="step-time">2 min</span><label class="done-box"><input type="checkbox" data-step="s3-2">Done</label></div>
+    <span class="lbl">Do – in the VS Code terminal</span>
+    <pre><code>$portal   = 'http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com'
+$treasury = 'http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service'
+./scripts/Invoke-SmokeTest.ps1 -PortalUrl $portal -TreasuryUrl $treasury</code></pre>
+    <span class="lbl">The two addresses</span>
+    <ul>
+      <li><code>$portal</code> – the <strong>portal</strong>, the website you opened in 3.1.</li>
+      <li><code>$treasury</code> – the <strong>treasury service</strong>, the Java service behind the portal (port 8080 on the same VM).</li>
+    </ul>
+    <span class="lbl">What it does</span>
+    <p>Checks both parts: the treasury service answers, the portal page loads with its data, and the portal correctly refuses invalid requests – without changing anything. In 6.1 you run the same test against the two Azure addresses: if it passes there too, the migrated app behaves like the original.</p>
+    <div class="expect"><p>15 × <code>[PASS]</code> and <code>SMOKE_TEST_PASSED</code>.</p></div>
+  </article>
+
+  <article class="step" id="s3-3">
+    <div class="step-head"><span class="step-num">3.3</span><h3>Run the assessment</h3><span class="step-time">10 min</span><label class="done-box"><input type="checkbox" data-step="s3-3">Done</label></div>
+    <span class="lbl">Do – in the VS Code window with <code>C:\Lab\finance-portal</code> open (2.2)</span>
+    <ol>
+      <li>In the left bar, click the <strong>GitHub Copilot modernization</strong> icon (hover over the icons to see their names).</li>
+      <li>At the top of the panel, click <strong>QuickStart</strong> to open it. It asks <em>How would you like to modernize your multi-language app?</em></li>
+      <li>Click <strong>Migrate to Azure</strong>. A new chat, <strong>Migrate application to Azure</strong>, opens and sends <em>Migrate this application to Azure</em> for you. Check the settings at the bottom of the chat box – see <a href="#where">Where you work in VS Code</a>.</li>
+      <li>Copilot asks how to start. The wording changes from run to run, for example <em>Which Azure migration path should I start with?</em> Choose the option that assesses the whole application, marked <strong>(Recommended)</strong> – in our test <strong>Run a full cloud-readiness assessment (Recommended)</strong>.</li>
+      <li>Wait a few minutes. The first run installs the analysis tools – click <strong>Allow</strong> when Copilot asks. The <strong>Assessment Report</strong> tab opens.</li>
+      <li>Copilot asks its next question, for example <em>Which Azure hosting target should I use for the migration?</em> or <em>Proceed to planning?</em> <strong>Stop here – don't answer it yet.</strong> That is the customer's decision (Part 4).</li>
+    </ol>
+    <figure class="shot"><img src="images/03-chat-assessment-started.png" alt="Copilot Chat 'Migrate application to Azure': the first question was answered with 'Run a full cloud-readiness assessment (Recommended)' and the assessment is running" loading="lazy"><figcaption>The chat after <strong>Migrate to Azure</strong>: the first question answered, the assessment running. At the bottom: agent <em>modernize</em> and the model.</figcaption></figure>
+    <div class="callout warn">
+      <p><strong>No <em>Migrate to Azure</em> button?</strong> QuickStart shows only <em>To start modernization, open a folder…</em> and <strong>Open Folder</strong> when VS Code has no folder open. Click <strong>Open Folder</strong> and choose <code>C:\Lab\finance-portal</code> – the buttons appear.</p>
+      <p>Click exactly <strong>Migrate to Azure</strong>. The other buttons (such as <strong>Start Assessment</strong>) and the <strong>Tasks</strong> list below QuickStart start other flows that this guide doesn't follow.</p>
+      <figure class="shot"><img src="images/01-quickstart-open-folder.png" alt="GitHub Copilot Modernization panel with no folder open: QuickStart shows only Open Folder; the Tasks list is below" loading="lazy"><figcaption>No folder open: QuickStart shows only <strong>Open Folder</strong>. The <strong>Tasks</strong> list below is not used in this lab.</figcaption></figure>
+      <figure class="shot"><img src="images/02-tasks-list-quickstart-collapsed.png" alt="GitHub Copilot Modernization panel with QuickStart collapsed at the top and the long Tasks list expanded below" loading="lazy"><figcaption>QuickStart collapsed (top): only the <strong>Tasks</strong> list shows, without <strong>Migrate to Azure</strong>. Click <strong>QuickStart</strong> to open it.</figcaption></figure>
+    </div>
+    <span class="lbl">What it does</span>
+    <p>AppCAT, the analysis engine, scans the code for everything that blocks a move to Azure: old runtimes, resources on the local server, passwords. This standard assessment fills the report's <strong>Issues</strong> tab – what the plan needs.</p>
+    <div class="expect"><p>The <strong>Assessment Report</strong> tab (<em>Report_</em> plus date and time), a summary of the findings in the chat, and Copilot's question – still unanswered.</p></div>
+    <figure class="shot"><img src="images/04-assessment-report-and-question.png" alt="Left: Copilot's summary and its open question 'Which Azure hosting target should I use for the migration?' with options and Enter custom answer. Right: the Assessment Report with Target Service AKS and the Cloud Readiness issues" loading="lazy"><figcaption>Left: Copilot's open question – leave it until 4.2. Right: the <strong>Assessment Report</strong>, still on <em>Azure Kubernetes Service (AKS)</em>.</figcaption></figure>
+  </article>
+
+  <article class="step" id="s3-4">
+    <div class="step-head"><span class="step-num">3.4</span><h3>Read the report</h3><span class="step-time">10 min</span><label class="done-box"><input type="checkbox" data-step="s3-4">Done</label></div>
+    <span class="lbl">Do – in the Assessment Report tab</span>
+    <ol>
+      <li><strong>Target Service</strong> shows <em>Azure Kubernetes Service (AKS)</em>. Change it to <strong>Azure App Service</strong> – our target. The list then shows only what matters for App Service.</li>
+      <li>On the <strong>Issues</strong> tab, start with the <strong>Mandatory</strong> findings – they block the move. Click <strong>›</strong> next to a finding to see the file, the line and the suggested fix.</li>
+      <li>Don't click <strong>Create Plan</strong> – you plan in the chat in Part 4, after the customer's decision.</li>
+    </ol>
+    <div class="expect">
+      <p>For Azure App Service, 3 findings – all in the treasury service (our test, effort S):</p>
+      <ul>
+        <li><strong>Local JDBC Calls</strong> – <em>Mandatory</em>: the service connects to a SQL Server on the same machine.</li>
+        <li><strong>Password found in configuration file</strong> – <em>Potential</em>: the database password in <code>application.properties</code>.</li>
+        <li><strong>Microsoft SQL database found</strong> – <em>Potential</em>: the database moves too.</li>
+      </ul>
+      <p class="small">With AKS selected you see 4 (plus <em>No Dockerfile found</em>), with Container Apps 5. Numbers can change with newer tool versions.</p>
+    </div>
+    <div class="callout tip"><p><strong>Only the treasury service in the report?</strong> That's how it ran in our test: for a repository with Java and .NET code, the assessment analyses the Java service. Copilot reads the portal's .NET code itself when it writes the plans (4.2), and every portal blocker – Windows authentication, Event Log, e-mail folder, local paths – becomes a task. The portal's findings from a separate .NET assessment are under <em>All findings</em> below.</p></div>
+    <div class="callout tip"><p><strong>Why are Architecture, API Contracts, Configuration, Business Workflows, Dependencies and Data Model empty?</strong> The standard assessment is <em>Issue only</em>: it fills the <strong>Issues</strong> tab. The six other tabs are 6 AI deep-analysis documents – architecture, dependencies, API contracts, data model, configuration and business workflows. Only a <strong>Custom Assessment</strong> with <strong>Full analysis</strong> generates them, and that takes much longer – 30 minutes and more. The plan doesn't need them: <strong>the standard assessment does the job.</strong></p></div>
+    <div class="callout tip"><p><strong>Where is the report saved?</strong> In <code>.github/modernize/assessment/</code> – one folder <code>reports/report-&lt;date and time&gt;</code> per report. Open it again any time from the <strong>Assessment Reports</strong> tab. Details: <a href="#files">What Copilot writes where</a>.</p></div>
+    <details><summary>Optional – the full assessment (Custom Assessment)</summary><div>
+      <p>Not needed for the lab. Use it to get the six extra tabs and a security scan – for example to prepare a customer demo the day before.</p>
+      <ol>
+        <li>Open the <strong>Assessment Reports</strong> tab (next to <em>Assessment Report</em> – it says <em>Assess your app for modernization</em>) and click <strong>Custom Assessment</strong>.</li>
+        <li>Choose <strong>Assessment Domains</strong>: Java Upgrade, Cloud Readiness and Security. <strong>Analysis Coverage</strong>: Full analysis. <strong>Target Runtime</strong>: OpenJDK 21. <strong>Target Compute Services</strong>: Azure App Service. <strong>Target Operating System</strong>: Linux.</li>
+        <li>Click <strong>Run Assessment</strong>. Copilot opens extra chats for the security scan and the six documents, for example <em>Run security assessment plan</em>. Let them work, and do the lab steps in the <em>Migrate application to Azure</em> chat.</li>
+      </ol>
+      <figure class="shot"><img src="images/05-assessment-dashboard.png" alt="Assessment Reports tab: Recommended Assessment and Custom Assessment cards; the custom report is running, the standard report completed with 5 issues" loading="lazy"><figcaption>The <strong>Assessment Reports</strong> tab: <strong>Custom Assessment</strong> at the top, every report below.</figcaption></figure>
+      <p><strong>In our test</strong> it added <em>Java Version Has Reached the End of Support</em> and 8 security findings (CWE, for example the hard-coded database password): 14 issues, effort L. The six documents hadn't arrived after more than 30 minutes and the report stayed at <em>99%</em>. If that happens, click <strong>Stop Running</strong> – the findings stay in the report.</p>
+      <figure class="shot"><img src="images/06-custom-assessment-security-99.png" alt="Left: chat 'Run security assessment plan' with the security findings table (CWE-259, CWE-798 and others). Right: the custom report running at 99% with Stop Running" loading="lazy"><figcaption>Left: the security scan's results in its own chat. Right: the custom report at <em>99%</em> – <strong>Stop Running</strong> is at the top right.</figcaption></figure>
+      <p class="small">Security findings are only reported here. Copilot fixes them only if your plan request asks for it – see the two scopes in 4.2.</p>
+    </div></details>
+    <details><summary>All findings from our test runs</summary><div>
+      <h4>Treasury service (Java) – VS Code assessment, 5 October 2026</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Finding</th><th>Criticality</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td>Local JDBC Calls</td><td>Mandatory</td><td><code>application.properties</code></td></tr>
+          <tr><td>Password found in configuration file</td><td>Potential</td><td><code>application.properties</code></td></tr>
+          <tr><td>Microsoft SQL database found</td><td>Potential</td><td><code>application.properties</code></td></tr>
+          <tr><td>No Dockerfile found</td><td>Mandatory – AKS and Container Apps only</td><td>–</td></tr>
+          <tr><td>Restricted configurations found</td><td>Potential – Container Apps only</td><td><code>application.properties</code></td></tr>
+          <tr><td>Java Version Has Reached the End of Support</td><td>Mandatory – full assessment only</td><td><code>pom.xml</code></td></tr>
+        </tbody>
+      </table></div>
+      <p class="small">The full assessment's security scan also found 8 CWE weaknesses, for example <em>CWE-259 Use of Hard-coded Password</em> and <em>CWE-798 Use of Hard-coded Credentials</em> in <code>application.properties</code>.</p>
+      <h4>Group Finance Portal (.NET) – .NET assessment, 2 October 2026: 15 issues, 92 occurrences</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Finding</th><th>Criticality</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td>Windows authentication detected (3)</td><td>Mandatory</td><td><code>Web.config</code></td></tr>
+          <tr><td>Windows local system features usage (2)</td><td>Mandatory</td><td><code>SystemStatusService</code></td></tr>
+          <tr><td>Hard-coded local or network paths</td><td>Mandatory</td><td><code>PortalSettings</code></td></tr>
+          <tr><td>Logging to local or network paths</td><td>Mandatory</td><td><code>Web.config</code></td></tr>
+          <tr><td>SMTP connections detected (4)</td><td>Potential</td><td><code>EmailNotifier</code></td></tr>
+          <tr><td>Access to external resources via HTTP (3)</td><td>Potential</td><td><code>TreasuryServiceClient</code></td></tr>
+          <tr><td>Local OS environment access (3)</td><td>Potential</td><td><code>Global.asax.cs</code></td></tr>
+          <tr><td>Hard-coded URLs</td><td>Potential</td><td><code>PortalSettings</code></td></tr>
+          <tr><td>Local or network I/O operations</td><td>Potential</td><td><code>HomeController</code></td></tr>
+          <tr><td>SQL database connection</td><td>Potential</td><td><code>Web.config</code></td></tr>
+          <tr><td><code>System.Data.SqlClient</code> dependency (66)</td><td>Optional</td><td>Data access code</td></tr>
+          <tr><td>Connection strings without configuration builders</td><td>Optional</td><td><code>Web.config</code></td></tr>
+          <tr><td>Synchronous API usage</td><td>Optional</td><td><code>PortalDataService</code></td></tr>
+          <tr><td>Static content</td><td>Optional</td><td>Project</td></tr>
+          <tr><td>Writing to the Windows Event Log</td><td>Optional</td><td><code>PortalLog</code></td></tr>
+        </tbody>
+      </table></div>
+    </div></details>
+  </article>
+</section>
+
+<section class="part" id="part-4">
+  <div class="part-head">
+    <div class="part-letter">4</div>
+    <div>
+      <h2>Decide and plan</h2>
+      <p class="part-meta"><span class="role">Everyone</span> About 30 minutes · the presenter plays the customer</p>
+      <div class="chips"><span class="chip">modernize agent</span></div>
+    </div>
+  </div>
+
+  <article class="step" id="s4-1">
+    <div class="step-head"><span class="step-num">4.1</span><h3>Get the customer's decision</h3><span class="step-time">10 min</span><label class="done-box"><input type="checkbox" data-step="s4-1">Done</label></div>
+    <p>Copilot is waiting for your answer in the chat. In a real project you now go back to the customer. In 3 minutes, tell the "CIO" (your presenter) what you found, what it means, and what you recommend:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Today</th><th>On Azure</th></tr></thead>
+      <tbody>
+        <tr><td>IIS + .NET Framework 4.8</td><td>App Service, <strong>.NET 10</strong></td></tr>
+        <tr><td>Tomcat + Java 8</td><td>App Service, <strong>Java 21</strong> / Spring Boot 3</td></tr>
+        <tr><td>SQL Server with Windows authentication and a password</td><td><strong>Azure SQL Database</strong> with managed identities – no passwords</td></tr>
+        <tr><td>Bank files and reports on the local disk</td><td><strong>Blob Storage</strong></td></tr>
+        <tr><td>Event Log and log files</td><td><strong>Application Insights</strong></td></tr>
+        <tr><td>E-mail through a local SMTP folder</td><td><strong>Communication Services Email</strong></td></tr>
+      </tbody>
+    </table></div>
+    <div class="expect"><p>A decision. <strong>No-go:</strong> stop here – the report is the deliverable. <strong>Go:</strong> agree how much Copilot should change – scope <strong>A – Essentials</strong> or <strong>B – Complete</strong> (4.2) – and continue.</p></div>
+  </article>
+
+  <article class="step" id="s4-2">
+    <div class="step-head"><span class="step-num">4.2</span><h3>Ask Copilot for the plans</h3><span class="step-time">15 min</span><label class="done-box"><input type="checkbox" data-step="s4-2">Done</label></div>
+    <p>The plan request decides how much Copilot changes. Choose one of two scopes:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>A – Essentials <span class="chip">lab default</span></th><th>B – Complete</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Copilot changes</strong></td><td>Only what the apps and their databases need to run on Azure: .NET 10, Java 21, Azure SQL, Blob Storage, e-mail, monitoring – then it deploys</td><td>The same, plus every other finding – security (CWE), potential and optional ones – and all recommendations, then it deploys</td></tr>
+        <tr><td><strong>Security</strong></td><td>The CVE task that Copilot adds to every plan, kept to patch updates. Other security findings become follow-ups.</td><td>All security findings fixed. Run the Custom Assessment with Security first (3.4), so they are in a report.</td></tr>
+        <tr><td><strong>Time</strong></td><td>About 3¾ hours in our test, from plans to live on Azure</td><td>Longer – every extra finding is extra code and tests (not timed)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout tip"><p><strong>What took the time in our test?</strong> Not security. The CVE task took 3 minutes for the portal (no CVEs) and 8 minutes for the treasury service (29 CVEs, fixed with patch updates). The baselines and integration tests took about an hour, the upgrades and Azure changes about an hour, and the deployment about 1¼ hours. The 8 security findings of the Custom Assessment weren't fixed, because the plan request didn't ask for it – the hard-coded password disappeared anyway with the move to managed identities.</p></div>
+    <span class="lbl">Do – in the same chat, <em>Migrate application to Azure</em></span>
+    <p>Copy prompt A – or B – and give it to Copilot as the answer to its open question from 3.3:</p>
+    <ul>
+      <li><strong>A question box with options</strong> (as in our test): click <strong>Enter custom answer</strong>, paste, press <strong>Ctrl+Enter</strong>. Don't pick one of the options – only this text asks for the .NET 10 upgrade.</li>
+      <li><strong>A question in the chat text</strong>, for example <em>Proceed to planning?</em>: paste into the chat box at the bottom and press <strong>Enter</strong>.</li>
+    </ul>
+    <div class="prompt"><span class="prompt-label">Prompt A – Essentials</span><div class="prompt-text">Yes, the customer approved the migration. Target: Azure App Service on Linux for both applications, with Azure SQL Database. Scope: only the changes the applications and their databases need to run on Azure. Don't fix other assessment findings, such as the security (CWE) findings – list them as follow-ups. Keep the CVE task to patch-level updates.
+Write one plan per application and stop for my review – don't execute anything yet.
+1. Group Finance Portal (src/dotnet): upgrade from .NET Framework 4.8 to .NET 10 (ASP.NET Core MVC); remove the Windows-only APIs (registry, Windows identity, Event Log) so it runs on Linux App Service; use Azure SQL Database with passwordless managed identity authentication instead of Windows authentication; replace the SMTP pickup-folder e-mail with Azure Communication Services Email; replace the Windows Event Log and local log files with OpenTelemetry and Application Insights; read the treasury service URL from configuration.
+2. Treasury service (src/java/treasury-service): upgrade to Java 21 and Spring Boot 3; use Azure SQL Database with passwordless managed identity authentication; move the bank files and cash-position reports from the local disk to Azure Blob Storage with managed identity.
+3. Deployment, as the last task of each plan – the portal plan runs first: deploy both applications into the existing resource group rg-finance-<span class="v" data-v="team">team1</span> in swedencentral. One Linux App Service plan, plan-finance-<span class="v" data-v="team">team1</span> (B1). Web apps app-portal-0720c-<span class="v" data-v="team">team1</span> (.NET 10) and app-treasury-0720c-<span class="v" data-v="team">team1</span> (Tomcat 10.1, Java 21, the WAR at the site root). Azure SQL server sql-finance-0720c-<span class="v" data-v="team">team1</span> with Microsoft Entra-only authentication and the databases ThurayaFinance and ThurayaTreasury (Basic): create the schemas, load the demo data from the database folder and create database users for both managed identities. Storage account stfinance0720c<span class="v" data-v="team">team1</span> with the containers the treasury service needs. Application Insights for the portal. Azure Communication Services Email with an Azure-managed domain. System-assigned managed identities, each with only the roles it needs – no passwords or keys. Public access is fine: this is a demo. At the end, run scripts/Invoke-SmokeTest.ps1 against both Azure URLs and show me the URLs.</div></div>
+    <details><summary>Prompt B – Complete: all findings, security included</summary><div>
+      <div class="prompt"><span class="prompt-label">Prompt B – Complete</span><div class="prompt-text">Yes, the customer approved the migration. Target: Azure App Service on Linux for both applications, with Azure SQL Database. Scope: everything – fix all findings of the assessment reports, security and non-security (mandatory, potential and optional), apply all their recommendations, and fix all CVEs in the dependencies. Add a task for each group of findings.
+Write one plan per application and stop for my review – don't execute anything yet.
+1. Group Finance Portal (src/dotnet): upgrade from .NET Framework 4.8 to .NET 10 (ASP.NET Core MVC); remove the Windows-only APIs (registry, Windows identity, Event Log) so it runs on Linux App Service; use Azure SQL Database with passwordless managed identity authentication instead of Windows authentication; replace the SMTP pickup-folder e-mail with Azure Communication Services Email; replace the Windows Event Log and local log files with OpenTelemetry and Application Insights; read the treasury service URL from configuration.
+2. Treasury service (src/java/treasury-service): upgrade to Java 21 and Spring Boot 3; use Azure SQL Database with passwordless managed identity authentication; move the bank files and cash-position reports from the local disk to Azure Blob Storage with managed identity.
+3. Deployment, as the last task of each plan – the portal plan runs first: deploy both applications into the existing resource group rg-finance-<span class="v" data-v="team">team1</span> in swedencentral. One Linux App Service plan, plan-finance-<span class="v" data-v="team">team1</span> (B1). Web apps app-portal-0720c-<span class="v" data-v="team">team1</span> (.NET 10) and app-treasury-0720c-<span class="v" data-v="team">team1</span> (Tomcat 10.1, Java 21, the WAR at the site root). Azure SQL server sql-finance-0720c-<span class="v" data-v="team">team1</span> with Microsoft Entra-only authentication and the databases ThurayaFinance and ThurayaTreasury (Basic): create the schemas, load the demo data from the database folder and create database users for both managed identities. Storage account stfinance0720c<span class="v" data-v="team">team1</span> with the containers the treasury service needs. Application Insights for the portal. Azure Communication Services Email with an Azure-managed domain. System-assigned managed identities, each with only the roles it needs – no passwords or keys. Public access is fine: this is a demo. At the end, run scripts/Invoke-SmokeTest.ps1 against both Azure URLs and show me the URLs.</div></div>
+      <p class="small">Not timed yet. Expect more tasks than in the plans below, and a longer Part 5.</p>
+    </div></details>
+    <p>Copilot may ask a few more questions in a box. Choose:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Question – the wording varies</th><th>Choose</th></tr></thead>
+      <tbody>
+        <tr><td>Spring Boot 3.x on Java 21, or Spring Boot 4.x on Java 25?</td><td><strong>Spring Boot 3.x on Java 21, as requested (Recommended)</strong></td></tr>
+        <tr><td>Should the plans include integration tests?</td><td>The <strong>(Recommended)</strong> option – tests with the Azure services mocked</td></tr>
+        <tr><td>Which Azure subscription?</td><td>The one that holds your resource group <code>rg-finance-<span class="v" data-v="team">team1</span></code></td></tr>
+        <tr><td>Any other question</td><td>The <strong>(Recommended)</strong> option, if it matches the prompt you sent</td></tr>
+      </tbody>
+    </table></div>
+    <figure class="shot"><img src="images/08-planning-questions.png" alt="Copilot reads the code of both applications, then asks: Spring Boot 3.x on Java 21 or Spring Boot 4.x; answered Spring Boot 3.x on Java 21, as requested (Recommended)" loading="lazy"><figcaption>Copilot reads both applications, then asks its questions in boxes – here answered with the (Recommended) option.</figcaption></figure>
+    <span class="lbl">What it does</span>
+    <p>Copilot reads the findings and the code of both applications and writes one plan per application – a plan covers one language. It commits the plans; no code changes yet.</p>
+    <div class="expect"><p>A summary of two plans, <code>group-finance-portal-to-azure</code> and <code>treasury-service-to-azure</code>, ending with something like <em>To start, ask me to run either plan</em>. If Copilot asks <em>The plan is ready. What would you like to do?</em>, choose <strong>Review the plan first</strong>.</p></div>
+    <figure class="shot"><img src="images/09-plans-ready.png" alt="Copilot's summary of the two plans with their tasks, the open questions for the deployment, and 'To start, ask me to run either plan'" loading="lazy"><figcaption>The plans are ready: one per application, each task in one line. (This one was written before deployment was added – with prompt A or B, each plan ends with a deployment task.)</figcaption></figure>
+  </article>
+
+  <article class="step" id="s4-3">
+    <div class="step-head"><span class="step-num">4.3</span><h3>Review the plans</h3><span class="step-time">10 min</span><label class="done-box"><input type="checkbox" data-step="s4-3">Done</label></div>
+    <span class="lbl">Do</span>
+    <ol>
+      <li>Open both plans: click <strong>plan.md</strong> in Copilot's summary, or in the Explorer open <code>.github/modernize/group-finance-portal-to-azure/plan.md</code> and <code>.github/modernize/treasury-service-to-azure/plan.md</code>. Press <strong>Ctrl+Shift+V</strong> for a readable preview.</li>
+      <li>Check:
+        <ul class="checklist">
+          <li>the portal plan has the upgrade to <strong>.NET 10</strong> before the Azure tasks;</li>
+          <li>there are tasks for Azure SQL, Blob Storage, Application Insights and e-mail;</li>
+          <li>each plan has a baseline, integration tests and a CVE task;</li>
+          <li>each plan ends with a <strong>deployment</strong> task with your names – <code>rg-finance-<span class="v" data-v="team">team1</span></code>, <code>app-portal-0720c-<span class="v" data-v="team">team1</span></code>, …</li>
+        </ul></li>
+      <li>At the end of each plan, <strong>Open Questions &amp; Questionnaire</strong> lists what Copilot decided (<code>[x]</code>) and what is still open (<code>[ ]</code>).</li>
+    </ol>
+    <p>Something missing? Tell Copilot in the chat, for example: <em>Add a task to …</em></p>
+    <div class="expect"><p>Two plans like the ones from our test below. Each plan folder holds <code>plan.md</code> and, in <code>.metadata</code>, the task list <code>tasks.json</code> – see <a href="#files">What Copilot writes where</a>. You run them in Part 5.</p></div>
+    <details><summary>The two plans from our test run</summary><div>
+      <h4><code>group-finance-portal-to-azure</code> – 8 tasks</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Task</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>000</td><td>Baseline – records how the portal behaves today</td></tr>
+          <tr><td>001</td><td>Upgrade to .NET 10 (ASP.NET Core MVC) – also removes the registry, Windows identity and IIS calls, and reads the treasury URL from configuration</td></tr>
+          <tr><td>002</td><td>Azure SQL Database with managed identity instead of Windows authentication</td></tr>
+          <tr><td>003</td><td>Azure Communication Services Email instead of the SMTP pickup folder</td></tr>
+          <tr><td>004</td><td>OpenTelemetry and Application Insights instead of the Event Log and log files</td></tr>
+          <tr><td>005</td><td>Integration tests against the baseline, with the Azure services mocked</td></tr>
+          <tr><td>006</td><td>CVE scan and fixes</td></tr>
+          <tr><td>007</td><td>Deployment – Bicep for all Azure resources, the databases with demo data, and the portal</td></tr>
+        </tbody>
+      </table></div>
+      <h4><code>treasury-service-to-azure</code> – 7 tasks</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Task</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>000</td><td>Baseline – records how the service behaves today</td></tr>
+          <tr><td>001</td><td>Spring Boot 3.x on Java 21 – still packaged as a WAR</td></tr>
+          <tr><td>002</td><td>Azure SQL Database with managed identity – the password and the <code>localhost</code> connection go</td></tr>
+          <tr><td>003</td><td>Bank files and cash-position reports to Azure Blob Storage, with managed identity</td></tr>
+          <tr><td>004</td><td>Integration tests against the baseline, with the Azure services mocked</td></tr>
+          <tr><td>005</td><td>CVE scan and fixes</td></tr>
+          <tr><td>006</td><td>Deployment of the treasury service, then the smoke test against both Azure URLs</td></tr>
+        </tbody>
+      </table></div>
+      <p><strong>Still open after the run – for real use:</strong> the bank connector must read the bank files from Blob Storage, the treasury API needs protection, and the treasury service still writes its own log to a local file.</p>
+      <p class="small muted">The full plans are next to this guide: <a href="sample-plans/group-finance-portal-to-azure/plan.md">group-finance-portal-to-azure/plan.md</a> and <a href="sample-plans/treasury-service-to-azure/plan.md">treasury-service-to-azure/plan.md</a>. Our run let Copilot choose its own names and region; with prompt A or B your plans use your names.</p>
+    </div></details>
+  </article>
+</section>
+
+<section class="part" id="part-5">
+  <div class="part-head">
+    <div class="part-letter">5</div>
+    <div>
+      <h2>Modernize and deploy</h2>
+      <p class="part-meta"><span class="role">Everyone</span> About 3¾ hours – Copilot works, you follow the progress</p>
+      <div class="chips"><span class="chip">modernize agent</span><span class="chip neutral">git</span><span class="chip neutral">.NET 10 SDK</span><span class="chip neutral">Java 21 + Maven (downloaded by Copilot)</span><span class="chip neutral">Node.js</span><span class="chip neutral">Azure CLI</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="files">
+    <h3>What Copilot writes where</h3>
+    <p>GitHub Copilot modernization writes everything into the folder <code>.github/modernize</code> of your repository – open it in the Explorer. This is the folder after our test run:</p>
+    <pre class="tree">.github/modernize/
+├─ assessment/                                     Part 3 – the reports (git ignores this folder)
+│  ├─ reports/report-20261005122146/               one folder per report: report.json
+│  ├─ engines/appcat/                              AppCAT logs and raw results
+│  ├─ engines/security/                            security scan – Custom Assessment only
+│  ├─ engines/facts/                               the 6 deep-analysis documents – Full analysis only
+│  └─ history/                                     earlier runs
+├─ group-finance-portal-to-azure/                  Part 4 – the portal plan
+│  ├─ plan.md                                      the plan you reviewed
+│  ├─ .metadata/tasks.json                         every task and its status
+│  ├─ .metadata/summary.json                       every task's result: tests, risks, follow-ups
+│  ├─ 000-setupBaseline-portal/                    baseline-summary.md
+│  ├─ 005-integrationTest/                         verification-summary.md – the test results
+│  └─ 006-security-cve-remediation/                cve-fix-summary.md
+├─ treasury-service-to-azure/                      the treasury plan – same layout
+├─ code-migration/                                 Part 5 – one folder per Azure migration task
+│  ├─ migration-azure-sql-database-20261005141917/ plan.md, progress.md, summary.md
+│  ├─ 003-transform-smtp-to-azure-communication-email/
+│  ├─ migration-opentelemetry-azure-20261005143733/
+│  ├─ migration-mi-azure-sql-20261005153114/
+│  └─ 20261005154428/                              Blob Storage – no built-in skill, so only a time stamp
+└─ java-upgrade/                                   logs of the Java tools</pre>
+    <figure class="shot"><img src="images/12-code-migration-folders.png" alt="VS Code Explorer: finance-portal with .github/modernize expanded: assessment, code-migration with five task folders, group-finance-portal-to-azure, java-upgrade, treasury-service-to-azure; next to it the progress checklist of a task" loading="lazy"><figcaption>The same folders in the VS Code Explorer during our run. The new <code>infra</code> folder holds Copilot's deployment files.</figcaption></figure>
+    <h4>Where to see the progress of each task</h4>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Task</th><th>Where you see it</th><th>Our test</th></tr></thead>
+      <tbody>
+        <tr><td>Every task</td><td><code>.metadata/tasks.json</code> of its plan – <code>"status"</code> turns to <code>success</code> – and one git commit per task (<strong>Source Control</strong> view)</td><td>15 tasks, each with its own commit – plus a few commits for deployment fixes</td></tr>
+        <tr><td>000 Baseline</td><td><code>&lt;plan&gt;/000-setupBaseline-…/baseline-summary.md</code></td><td>28 test cases for the portal, 33 for the treasury service</td></tr>
+        <tr><td>001 Upgrade</td><td>The chat and the task's commit – no folder of its own</td><td>.NET 10 in 14 min, Java 21 in 6 min</td></tr>
+        <tr><td>Azure migrations – SQL, e-mail, monitoring, Blob</td><td><code>code-migration/&lt;task&gt;-&lt;date and time&gt;/progress.md</code> – a checklist that fills in while Copilot works (✅ done, ⌛ running); <code>summary.md</code> when the task is done</td><td>6 to 12 min per task</td></tr>
+        <tr><td>Integration tests</td><td><code>&lt;plan&gt;/0xx-integrationTest/verification-summary.md</code></td><td>28 of 28 and 33 of 33 passed</td></tr>
+        <tr><td>CVE task</td><td><code>&lt;plan&gt;/0xx-security-cve-remediation/cve-fix-summary.md</code></td><td>Portal: no CVEs. Treasury: 29 fixed with patch updates.</td></tr>
+        <tr><td>Deployment</td><td>The chat, and the new files in <code>infra/</code> and <code>.azure/deployment-plan.md</code></td><td>Bicep plus <code>infra/scripts/deploy.ps1</code></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <article class="step" id="s5-1">
+    <div class="step-head"><span class="step-num">5.1</span><h3>Start the run</h3><span class="step-time">5 min, then about 3¾ hours</span><label class="done-box"><input type="checkbox" data-step="s5-1">Done</label></div>
+    <span class="lbl">Do</span>
+    <ol>
+      <li>In the terminal, sign in to Azure again – the deployment at the end uses this sign-in, and in our test an expired one stopped it: <code>az login</code></li>
+      <li>Set <strong>Permissions</strong>, under the chat box, to <strong>Allow all</strong> (<a href="#where">Where you work in VS Code</a>).</li>
+      <li>In the same chat, send:
+        <div class="prompt"><span class="prompt-label">Message to Copilot</span><div class="prompt-text">Execute both plans: first group-finance-portal-to-azure, then treasury-service-to-azure, including their deployment tasks. Commit after each task. At the end, show me the Azure URLs and the smoke test result.</div></div></li>
+      <li>Shows Copilot a <strong>Review Plan</strong> card? Click <strong>Implement with Autopilot</strong>.</li>
+      <li>Answer the question boxes Copilot may show – choose the option that matches your plan. Keep VS Code open and the laptop awake and online. Don't edit files.</li>
+    </ol>
+    <figure class="shot"><img src="images/11-review-plan-implement-with-autopilot.png" alt="Review Plan card listing the order of the plans, Git, tooling and the Azure resources, with the buttons Implement with Autopilot and Reject" loading="lazy"><figcaption>In <em>Plan</em> mode Copilot first shows its run plan – click <strong>Implement with Autopilot</strong>.</figcaption></figure>
+    <figure class="shot"><img src="images/10-execute-deploy-question.png" alt="A question box during the run: should I also create the Azure resources and deploy both apps? Options: execute both plans and deploy (Recommended), execute only, or a custom answer" loading="lazy"><figcaption>A question during the run: our first plan request said <em>don't deploy</em>, so Copilot asked. With prompt A or B the deployment is already in the plans.</figcaption></figure>
+    <span class="lbl">What it does – for every task</span>
+    <p>Copilot changes the code, builds it and runs the tests, fixes what breaks, checks the result against the original behaviour, and commits – one git commit per task on your branch. The status bar shows which branch. At the end it creates the Azure resources, loads the demo data into Azure SQL, deploys both apps and runs the smoke test against them.</p>
+    <div class="callout warn"><p><strong>The run stopped, or a task shows <em>Started</em> instead of done?</strong> Usually the network dropped. Type <em>Continue executing the plan</em> – Copilot picks up where it stopped.</p></div>
+    <div class="expect">
+      <p>Commits appearing one by one. Our test, 5 October 2026:</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Time</th><th>What happened</th></tr></thead>
+        <tbody>
+          <tr><td>13:51</td><td>Plans committed</td></tr>
+          <tr><td>14:03 – 15:04</td><td>Portal: baseline, .NET 10, Azure SQL, e-mail, OpenTelemetry, integration tests, CVE task – 7 commits</td></tr>
+          <tr><td>15:14</td><td>Portal deployment task: Bicep for all resources and the database script</td></tr>
+          <tr><td>15:23 – 16:17</td><td>Treasury: baseline, Java 21, Azure SQL, Blob Storage, integration tests, CVE task – 6 commits</td></tr>
+          <tr><td>16:20 – 16:24</td><td>Deployment script, updated README</td></tr>
+          <tr><td>16:36 – 17:38</td><td>Deployment: Azure sign-in renewed, a start-up bug fixed, region changed – both apps live</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </article>
+
+  <article class="step" id="s5-2">
+    <div class="step-head"><span class="step-num">5.2</span><h3>Follow the progress</h3><span class="step-time">while it runs</span><label class="done-box"><input type="checkbox" data-step="s5-2">Done</label></div>
+    <span class="lbl">Do – in the Explorer</span>
+    <ol>
+      <li>Open <code>.github/modernize/code-migration</code>. A new folder appears for each Azure migration task. Open its <code>progress.md</code> – it fills in while Copilot works.</li>
+      <li>Open <code>.github/modernize/group-finance-portal-to-azure/.metadata/tasks.json</code>: each finished task shows <code>"status": "success"</code>.</li>
+      <li>Open the <strong>Source Control</strong> view: one commit per finished task.</li>
+    </ol>
+    <figure class="shot"><img src="images/13-progress-md.png" alt="Explorer with .github/modernize/code-migration and its task folders; progress.md of the OpenTelemetry task with green ticks for plan, version control, code migration, build, CVE, consistency, unit test, completeness and startup checks, summary and commit" loading="lazy"><figcaption><code>progress.md</code> of the OpenTelemetry task: every step ticked – code changes, build, CVE, consistency and completeness checks, startup test and commit.</figcaption></figure>
+    <div class="expect"><p>A <code>progress.md</code> like the one above for each Azure migration task, and a <code>summary.md</code> next to it when the task is done – with a before-and-after table and the build, test and CVE results. See <a href="#files">What Copilot writes where</a> for every other report.</p></div>
+  </article>
+
+  <article class="step" id="s5-3">
+    <div class="step-head"><span class="step-num">5.3</span><h3>Read the final summary</h3><span class="step-time">5 min</span><label class="done-box"><input type="checkbox" data-step="s5-3">Done</label></div>
+    <p>When both plans are done, Copilot ends with a summary in the chat. Ours, shortened:</p>
+    <div class="callout ok">
+      <p><strong>Task completed:</strong> both modernization plans ran to completion, portal first, and both apps are live on Azure. The end-to-end smoke test passes 15/15 against the deployed apps, and the portal's <code>/health</code> reports <code>Healthy</code>.</p>
+      <p><strong>Portal:</strong> ASP.NET Core MVC on .NET 10 with the Windows-only APIs removed. Azure SQL with managed identity, Communication Services Email, OpenTelemetry to Application Insights. 28/28 integration tests pass; no CVEs.</p>
+      <p><strong>Treasury service:</strong> Spring Boot 3.5.16 on Java 21, still a WAR on Tomcat 10.1. Azure SQL with managed identity; bank files and reports in Blob Storage. 12 unit and 33 integration tests pass; 29 CVEs fixed with patch-level updates.</p>
+      <p>Every app-to-service connection uses managed identities, each with only the role it needs. Nothing stores a password or key. Everything is committed, not pushed. To redeploy: <code>infra/scripts/deploy.ps1</code>.</p>
+      <p><strong>Before any real use:</strong> the bank connector must read the bank files from the <code>bank-files</code> container, the treasury API should be protected, and the treasury log still goes to a local file.</p>
+    </div>
+    <div class="callout tip"><p><strong>Why B1 in prompts A and B?</strong> Our test used the free F1 tier. The first deployment showed an upgrade bug: the portal's <code>assets</code> folder was missing from the published app, so it crash-looped. On F1 that used up the plan's hourly restart allowance and locked both apps. Copilot fixed the bug and redeployed in another region. B1 has no such limit.</p></div>
+    <div class="expect"><p>The two Azure URLs and the smoke test result – 15 × <code>[PASS]</code>. You check them yourself in Part 6.</p></div>
+  </article>
+
+  <article class="step" id="s5-4">
+    <div class="step-head"><span class="step-num">5.4</span><h3>See what changed</h3><span class="step-time">10 min</span><label class="done-box"><input type="checkbox" data-step="s5-4">Done</label></div>
+    <span class="lbl">Do – in the terminal</span>
+    <pre><code>git log --oneline
+dotnet build src/dotnet
+dotnet test src/dotnet</code></pre>
+    <p>Then open a few commits in the <strong>Source Control</strong> view. This is what Copilot changed:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Before</th><th>After</th></tr></thead>
+      <tbody>
+        <tr><th colspan="2">Portal (<code>src/dotnet</code>)</th></tr>
+        <tr><td>.NET Framework 4.8, <code>Global.asax</code>, <code>Web.config</code></td><td>.NET 10, <code>Program.cs</code>, <code>appsettings.json</code></td></tr>
+        <tr><td>Windows authentication to SQL Server</td><td>Azure SQL with managed identity – no password</td></tr>
+        <tr><td>E-mail into a local SMTP folder</td><td>Azure Communication Services Email</td></tr>
+        <tr><td>Event Log and local log files</td><td>OpenTelemetry → Application Insights</td></tr>
+        <tr><td>Treasury URL written in the code</td><td>Treasury URL from configuration</td></tr>
+        <tr><th colspan="2">Treasury service (<code>src/java/treasury-service</code>)</th></tr>
+        <tr><td>Java 8, Spring Boot 2.7 (<code>javax</code>)</td><td>Java 21, Spring Boot 3 (<code>jakarta</code>)</td></tr>
+        <tr><td>SQL password in <code>application.properties</code></td><td>Azure SQL with managed identity – password gone</td></tr>
+        <tr><td>Bank files and reports on the local disk</td><td>Blob Storage with managed identity</td></tr>
+        <tr><td>Outdated libraries</td><td>Patched versions (CVE task)</td></tr>
+        <tr><th colspan="2">New</th></tr>
+        <tr><td>–</td><td><code>infra/</code>: Bicep for all Azure resources, the database script and <code>infra/scripts/deploy.ps1</code></td></tr>
+      </tbody>
+    </table></div>
+    <div class="expect"><ul>
+      <li>One commit per task, for both plans, and <code>Build succeeded</code> and <code>Passed!</code></li>
+    </ul></div>
+    <div class="callout ok"><p><strong>Worth showing:</strong> Copilot finds and fixes its own mistakes. In an earlier test, its tests caught a bug from the .NET upgrade (error 500 instead of 403). In this run, the first deployment showed the missing <code>assets</code> folder – Copilot fixed the publish step and redeployed.</p></div>
+  </article>
+</section>
+
+<section class="part" id="part-6">
+  <div class="part-head">
+    <div class="part-letter">6</div>
+    <div>
+      <h2>Test on Azure</h2>
+      <p class="part-meta"><span class="role">Everyone</span> About 20 minutes · use the VS Code terminal</p>
+      <div class="chips"><span class="chip neutral">Invoke-SmokeTest.ps1</span><span class="chip neutral">Azure portal</span><span class="chip neutral">Azure CLI</span></div>
+    </div>
+  </div>
+  <p>Copilot deployed both apps in Part 5. Your Azure names: resource group <code>rg-finance-<span class="v" data-v="team">team1</span></code>, portal <code>app-portal-0720c-<span class="v" data-v="team">team1</span></code>, treasury service <code>app-treasury-0720c-<span class="v" data-v="team">team1</span></code>, SQL server <code>sql-finance-0720c-<span class="v" data-v="team">team1</span></code>.</p>
+
+  <article class="step" id="s6-1">
+    <div class="step-head"><span class="step-num">6.1</span><h3>Run the test on Azure</h3><span class="step-time">5 min</span><label class="done-box"><input type="checkbox" data-step="s6-1">Done</label></div>
+    <span class="lbl">Do</span>
+    <pre><code>$portal   = 'https://app-portal-0720c-<span class="v" data-v="team">team1</span>.azurewebsites.net'
+$treasury = 'https://app-treasury-0720c-<span class="v" data-v="team">team1</span>.azurewebsites.net'
+./scripts/Invoke-SmokeTest.ps1 -PortalUrl $portal -TreasuryUrl $treasury</code></pre>
+    <span class="lbl">The two addresses</span>
+    <p>The same two parts as in 3.2 – now on Azure: <code>$portal</code> is the portal Copilot deployed, <code>$treasury</code> the treasury service. Copilot used other names? Take the two URLs from its final summary (5.3).</p>
+    <span class="lbl">What it does</span>
+    <p>Exactly the same test as in 3.2. If it passes on Azure too, the migrated app behaves like the original.</p>
+    <div class="callout tip"><p><strong>A check fails, or the first request times out?</strong> Run the test again after a minute – the first request wakes the apps up. Still failing? Paste the test output into the chat and let Copilot fix it.</p></div>
+    <div class="expect"><p>15 × <code>[PASS]</code> and <code>SMOKE_TEST_PASSED</code> – as in our test.</p></div>
+  </article>
+
+  <article class="step" id="s6-2">
+    <div class="step-head"><span class="step-num">6.2</span><h3>Look at it on Azure</h3><span class="step-time">10 min</span><label class="done-box"><input type="checkbox" data-step="s6-2">Done</label></div>
+    <span class="lbl">Do</span>
+    <ol>
+      <li>Open the portal on Azure: <code>https://app-portal-0720c-<span class="v" data-v="team">team1</span>.azurewebsites.net</code> – the same invoices and figures as on the VM. User menu → <strong>About</strong>.</li>
+      <li>Open <code>https://app-portal-0720c-<span class="v" data-v="team">team1</span>.azurewebsites.net/health</code>.</li>
+      <li>In the Azure portal, open the resource group <code>rg-finance-<span class="v" data-v="team">team1</span></code>: the two web apps, the SQL server with two databases, the storage account, Application Insights and Communication Services. On a web app, <strong>Identity</strong> shows its managed identity.</li>
+    </ol>
+    <div class="expect"><ul>
+      <li><strong>About</strong> shows Linux, .NET 10 and Azure SQL instead of Windows, IIS and SQL Server Express.</li>
+      <li><code>/health</code> reports <code>Healthy</code>.</li>
+      <li>No passwords or keys in any app setting – only server names, database names and endpoints.</li>
+      <li>The same kinds of resources as in <a href="#result">The result</a> below, with your names.</li>
+    </ul></div>
+  </article>
+
+  <div class="card" id="result">
+    <h3>The result: the whole application on Azure</h3>
+    <p>This is where the migration ends: everything that ran on the on-premises server now runs on Azure. The resource group from our test run – 13 resources, created by Copilot's deployment:</p>
+    <figure class="shot"><img src="images/14-azure-resource-group.png" alt="Azure portal, resource group rg-thuraya-demo-frc in France Central with 2 succeeded deployments and 13 resources: Communication Service, App Services for the portal and the treasury service, Application Insights, App Service plan, Email Communication Service with an Azure-managed domain, Failure Anomalies alert rule, Log Analytics workspace, SQL server with the databases ThurayaFinance and ThurayaTreasury, and a storage account" loading="lazy"><figcaption>Our run, 5 October 2026 (subscription hidden). Copilot chose the names (<code>thuraya-demo-frc-…</code>) and, after the F1 problem, France Central. With prompt A or B your resource group <code>rg-finance-<span class="v" data-v="team">team1</span></code> shows the same kinds of resources with your names.</figcaption></figure>
+    <div class="table-wrap"><table>
+      <thead><tr><th>On the server (before)</th><th>On Azure (now)</th><th>In the resource group</th></tr></thead>
+      <tbody>
+        <tr><td>IIS, ASP.NET MVC on .NET Framework 4.8</td><td>Portal on App Service – Linux, .NET 10</td><td><code>app-…-portal-…</code> on the plan <code>asp-…</code></td></tr>
+        <tr><td>Tomcat 9, Java 8, Spring Boot 2.7</td><td>Treasury service on App Service – Tomcat 10.1, Java 21, Spring Boot 3</td><td><code>app-…-treasury-…</code></td></tr>
+        <tr><td>SQL Server Express – two databases, Windows authentication and a SQL password</td><td>Azure SQL Database with managed identities – no passwords</td><td><code>sql-…</code> with <code>ThurayaFinance</code> and <code>ThurayaTreasury</code></td></tr>
+        <tr><td>Bank files and reports on the server's disk</td><td>Blob Storage</td><td><code>st…</code></td></tr>
+        <tr><td>E-mail through an SMTP pickup folder</td><td>Azure Communication Services Email</td><td><code>acs-…</code>, <code>ecs-…</code> and its <code>AzureManagedDomain</code></td></tr>
+        <tr><td>Windows Event Log and log files</td><td>OpenTelemetry → Application Insights</td><td><code>appi-…</code> with <code>log-…</code>, and the <em>Failure Anomalies</em> alert rule that Azure adds to it</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout ok"><p><strong>Done end to end by the GitHub Copilot modernization agent.</strong> It assessed the code, wrote the plans, upgraded and migrated both applications, tested them, wrote the Bicep and the deployment script, created these resources, loaded the demo data, deployed both apps and ran the smoke test. People made the decisions: approve the migration, choose the scope, review the plans, answer Copilot's questions and sign in to Azure. Nobody edited the code or created a resource by hand.</p></div>
+  </div>
+
+  <article class="step" id="s6-3">
+    <div class="step-head"><span class="step-num">6.3</span><h3>Clean up</h3><span class="step-time">2 min</span><label class="done-box"><input type="checkbox" data-step="s6-3">Done</label></div>
+    <div class="callout danger"><p><strong>Security:</strong> the treasury service's API has no sign-in – on-premises it relied on the server's network. On Azure it is reachable from the internet, so don't leave the deployment running.</p></div>
+    <span class="lbl">Do</span>
+    <pre><code>az group delete -n rg-finance-<span class="v" data-v="team">team1</span> --yes --no-wait</code></pre>
+    <div class="expect"><p>The command returns at once; Azure deletes your resources in the background. Your branch keeps the full story – code, plans, reports and the deployment script: <code>git log --oneline</code>.</p></div>
+  </article>
+</section>
+
+<section class="part" id="part-7">
+  <div class="part-head">
+    <div class="part-letter">7</div>
+    <div>
+      <h2>Run the day</h2>
+      <p class="part-meta"><span class="role presenter">Presenter</span> Agenda, customer demo, troubleshooting and clean-up</p>
+    </div>
+  </div>
+
+  <div class="card" id="agenda">
+    <h3>Agenda</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Time</th><th>Part</th><th>Your focus</th></tr></thead>
+      <tbody>
+        <tr><td>0:00</td><td>Intro (15 min)</td><td>The story: the CFO wants Azure; humans stay in the loop</td></tr>
+        <tr><td>0:15</td><td><a href="#part-3">3 – Assess</a> (30 min)</td><td>Help with tool downloads; point out the mandatory findings</td></tr>
+        <tr><td>0:45</td><td><a href="#part-4">4 – Decide and plan</a> (30 min)</td><td>Play the customer: ask about risks and effort, then say yes</td></tr>
+        <tr><td>1:15</td><td><a href="#part-5">5 – Modernize and deploy</a> (about 3¾ hours, lunch included)</td><td>Check that every team chose prompt A, signed in with <code>az login</code> and set Allow all; keep teams from editing code; collect "surprises"</td></tr>
+        <tr><td>5:00</td><td><a href="#part-6">6 – Test on Azure</a> (20 min)</td><td>Smoke test on Azure; a look at the managed identities</td></tr>
+        <tr><td>5:20</td><td>Read-out (20 min)</td><td>What Copilot did, where teams stepped in, open risks</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card" id="demo">
+    <h3>Customer demo (30–40 minutes)</h3>
+    <p>Part 5 takes hours, so prepare the day before: run Parts 2–6 yourself and keep the finished branch and the Azure deployment. Show live only the moments where the customer decides.</p>
+    <ol>
+      <li><strong>Today (3 min):</strong> the portal on the VM, approve an invoice, <strong>About</strong> – IIS, .NET Framework 4.8, SQL Server, Tomcat, Java 8.</li>
+      <li><strong>The code (3 min):</strong> <code>Web.config</code> (Windows authentication, SMTP folder, log file), <code>application.properties</code> (password), <code>BankFileWriter.java</code> (local disk).</li>
+      <li><strong>Assess – live (7 min):</strong> 3.3, then the report with <strong>Target Service</strong> set to Azure App Service and its mandatory findings. Ran the full assessment (3.4, optional) the day before? Show its extra tabs, such as <strong>Architecture</strong>.</li>
+      <li><strong>The decision (3 min):</strong> when Copilot asks its next question, turn to the customer: <em>"Do you want to move it to Azure?"</em></li>
+      <li><strong>Plan (5 min):</strong> explain scope A and B, send prompt A live. Planning takes about 15 minutes, so continue with the plans you prepared – or the sample plans in 4.3: ordered tasks, each tied to findings, ending with the deployment.</li>
+      <li><strong>The run (7 min):</strong> your prepared branch – <code>git log</code> with one commit per task, a <code>progress.md</code> in <code>.github/modernize/code-migration</code>, a few diffs, and the bugs Copilot found and fixed itself.</li>
+      <li><strong>On Azure (5 min):</strong> the resource group Copilot created (<a href="#result">The result</a>), the deployed portal, <strong>About</strong>, <code>/health</code>, the managed identities, and the smoke test passing.</li>
+      <li><strong>Close (2 min):</strong> assessment → decision → plan → reviewed changes → Azure, for both stacks – end to end by GitHub Copilot modernization.</li>
+    </ol>
+  </div>
+
+  <div class="card" id="trouble">
+    <h3>Troubleshooting</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Problem</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td>The portal or Remote Desktop times out</td><td>The network changed – run the first four lines of 1.5 from the network you are on. Some company networks use several internet addresses: use the venue Wi-Fi or a phone hotspot instead.</td></tr>
+        <tr><td>Portal shows HTTP 500 or 503 right after the VM started</td><td>Wait 3–5 minutes – SQL Server and Tomcat are still starting.</td></tr>
+        <tr><td>Azure CLI: <em>AADSTS70043</em> or "token expired"</td><td><code>az login</code>, then run the command again.</td></tr>
+        <tr><td>GitHub Copilot modernization shows only <strong>Open Folder</strong>, or no <strong>Migrate to Azure</strong> button</td><td>No folder is open: <strong>File → Open Folder…</strong> → <code>C:\Lab\finance-portal</code>. Then click <strong>QuickStart</strong> to open it (3.3).</td></tr>
+        <tr><td>The chat shows <em>Agent</em>, <em>Ask</em> or <em>Plan</em> instead of <strong>modernize</strong>, or you lost the chat</td><td>Click the agent picker at the bottom of the chat box and choose <strong>modernize</strong>. To find the chat: click <strong>←</strong> at the top of the Chat panel and open <em>Migrate application to Azure</em>.</td></tr>
+        <tr><td>Copilot shows a question box, but you want to send your own text</td><td>Click <strong>Enter custom answer</strong>, paste the text, press <strong>Ctrl+Enter</strong>.</td></tr>
+        <tr><td>The report shows <em>No Dockerfile found</em> and other container findings</td><td>Set <strong>Target Service</strong> to <strong>Azure App Service</strong> (3.4).</td></tr>
+        <tr><td>Custom Assessment with Full analysis stays at <em>99%</em></td><td>The deep-analysis documents haven't arrived. The lab doesn't need them: click <strong>Stop Running</strong> – the findings stay.</td></tr>
+        <tr><td>Lost the VM password</td><td><code>az vm user update -g rg-contoso-onprem-swc -n vm-contoso-web01 -u contosoadmin -p &lt;new-password&gt;</code></td></tr>
+        <tr><td>Assessment: <em>Msbuild was not found</em> / <em>Report file is not generated</em></td><td>Install the Build Tools (2.1), restart VS Code, assess again.</td></tr>
+        <tr><td>Assessment: <em>Failed to install .NET AppCAT tool</em> (nuget.org blocked by a company proxy)</td><td>Install it from your company's approved NuGet feed, then assess again:<br><code>dotnet tool install --tool-path "$env:LOCALAPPDATA\Microsoft\VisualStudio\AppModernizationExtension\Tools" dotnet-appcat</code></td></tr>
+        <tr><td>The plan has no .NET 10 upgrade task</td><td>Use the exact 4.2 prompt – it asks for .NET 10.</td></tr>
+        <tr><td>The run stopped, or a task shows <em>Started</em></td><td>Usually a network drop. Type <em>Continue executing the plan</em>.</td></tr>
+        <tr><td>The deployment waits for an Azure sign-in, or Azure CLI says <em>AADSTS70043</em></td><td>Run <code>az login</code> in the terminal, then tell Copilot: <em>I signed in again – continue.</em></td></tr>
+        <tr><td>Copilot asks whether it should deploy</td><td>Your plan request didn't include deployment. Choose the option that executes both plans and deploys.</td></tr>
+        <tr><td>The portal on Azure keeps restarting; its log mentions the missing <code>assets</code> folder</td><td>The upgrade left <code>assets</code> out of the published app. Tell Copilot: <em>The portal's publish output is missing the assets folder – include it and redeploy.</em> In our test Copilot found and fixed this itself.</td></tr>
+        <tr><td>F1 (free) App Service: apps stopped after restarts, or no F1 quota in the region</td><td>Use B1 as in prompts A and B. F1 limits CPU time and restarts.</td></tr>
+        <tr><td>Copilot used other names than in your prompt</td><td>Use the URLs from its final summary (5.3) in 6.1.</td></tr>
+        <tr><td>App on Azure: <em>Login failed for user '&lt;token-identified principal&gt;'</em></td><td>A managed identity has no database user. Tell Copilot the error – it creates the user and restarts the app.</td></tr>
+        <tr><td>Portal on Azure shows no data; log: <em>No such host is known</em></td><td>The database setting still has a placeholder. Tell Copilot: <em>Set the portal's connection string ConnectionStrings__ThurayaFinanceDb to my Azure SQL server.</em></td></tr>
+        <tr><td>No data in Application Insights</td><td>Tell Copilot: <em>Set the App Service setting ApplicationInsights__ConnectionString for the portal.</em></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card" id="reset">
+    <h3>Reset and clean up</h3>
+    <pre><code>./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData   <span class="cmt"># fresh demo data before the next session</span>
+az vm deallocate -g rg-contoso-onprem-swc -n vm-contoso-web01                       <span class="cmt"># pause the VM between events (stops compute costs)</span>
+az group delete -n rg-finance-team1 --yes --no-wait                                 <span class="cmt"># a team's Azure resources - repeat for team2, team3, ...</span>
+./onprem-vm/Remove-Lab.ps1 -ResourceGroup rg-contoso-onprem-swc                     <span class="cmt"># only when you no longer need the lab VM</span></code></pre>
+    <p class="small muted"><code>Update-LabApp.ps1</code> starts a paused VM automatically. The lab VM costs about USD 35 per month while it runs.</p>
+  </div>
+
+  <div class="card" id="tested">
+    <h3>What was tested</h3>
+    <p><strong>5 October 2026 – the whole VS Code path, end to end by the GitHub Copilot modernization agent</strong> (version 1.24.0, Claude Opus 5.5), in a clone of the lab repository:</p>
+    <ul>
+      <li>QuickStart → <strong>Migrate to Azure</strong> → standard assessment: 5 findings in the treasury service, in a few minutes.</li>
+      <li>Custom Assessment with Full analysis and Security: 14 issues; the six documents didn't arrive and it was cancelled at 99%.</li>
+      <li>Planning → two plans; deployment added before the run (8 and 7 tasks, 4.3).</li>
+      <li>Run with <strong>Implement with Autopilot</strong>: all 15 tasks succeeded, one commit each. Portal 28/28 integration tests; treasury 12 unit and 33 integration tests; 29 CVEs fixed.</li>
+      <li>Copilot's deployment: Bicep, Azure SQL with demo data, both apps – 13 resources (<a href="#result">The result</a>), smoke test 15/15 on Azure, <code>/health</code> Healthy. Plans to live in about 3¾ hours, including an F1 restart lock-out, a region change and an expired Azure sign-in.</li>
+    </ul>
+    <p><strong>2 October 2026 – the same agents through the Modernize CLI</strong>, in copies of the code:</p>
+    <ul>
+      <li>Lab deployment, smoke test (15/15) and data check on the VM.</li>
+      <li>Assessment of both applications: 15 portal issues and 11 treasury findings.</li>
+      <li>Code changes: all tasks succeeded – portal in about 105 minutes, treasury in 72 minutes.</li>
+      <li>Data copy from the VM to Azure SQL with <code>scripts/Copy-DatabasesToAzureSql.ps1</code>: 19 tables / 1,902 rows and 7 tables / 279 rows identical – the alternative to the demo data, if you want the server's real data (<a href="04-deploy-and-verify.md">04-deploy-and-verify.md</a>).</li>
+    </ul>
+    <div class="callout warn"><p><strong>Not tested yet – rehearse once before the first event:</strong> prompt A and B word for word – with your names, B1 and an existing resource group – and prompt B's extra security work.</p></div>
+    <p class="small muted">This guide is set up for the lab VM <code>contoso-onprem-0720c</code> in resource group <code>rg-contoso-onprem-swc</code>. For a lab in another subscription or resource group, replace <code>0720c</code> and <code>rg-contoso-onprem-swc</code> in this file.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Application code: <a href="https://github.com/zhshah/AlThuraya-App-Modernization-Lab">zhshah/AlThuraya-App-Modernization-Lab</a>. Lab kit – this guide, the lab scripts and the application: <a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">zhshah/AlThuraya-App-Modernization-LabKit</a> (presenters). Keep the <code>images</code> and <code>sample-plans</code> folders next to this file – the screenshots and sample plans live there. Presenters: the Markdown files next to this guide (<a href="README.md">README.md</a> and the modules) are the detailed reference, including optional alternatives such as the Modernize CLI.</p>
+  <p>All organisations, people, accounts and figures in the demo application are fictitious.</p>
+</footer>
+</main>
+</div>
+<script>
+(() => {
+  const store = {
+    get(key, fallback) {
+      try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+    },
+    set(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage blocked: keep it in memory */ }
+    }
+  };
+
+  async function copyText(text, button) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+    }
+    const label = button.textContent;
+    button.textContent = "Copied";
+    setTimeout(() => { button.textContent = label; }, 1400);
+  }
+  function addCopyButton(container, getText) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn copy";
+    button.textContent = "Copy";
+    button.addEventListener("click", () => copyText(getText(), button));
+    container.appendChild(button);
+  }
+  document.querySelectorAll("pre").forEach((pre) => {
+    const code = pre.querySelector("code");
+    if (code) addCopyButton(pre, () => code.textContent);
+  });
+  document.querySelectorAll(".prompt").forEach((box) => {
+    const text = box.querySelector(".prompt-text");
+    if (text) addCopyButton(box, () => text.textContent);
+  });
+
+  // Team name: the only value that changes; written into the placeholder spans as text, never as HTML
+  const teamInput = document.querySelector('input[data-var="team"]');
+  const teamSpans = document.querySelectorAll('.v[data-v="team"]');
+  const vars = store.get("ghcpLab.vars", {});
+  function applyTeam() {
+    const team = (vars.team || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 10) || "team1";
+    teamSpans.forEach((span) => { span.textContent = team; });
+  }
+  if (teamInput) {
+    teamInput.value = vars.team || "";
+    teamInput.addEventListener("input", () => {
+      vars.team = teamInput.value.trim();
+      store.set("ghcpLab.vars", vars);
+      applyTeam();
+    });
+  }
+  applyTeam();
+
+  const boxes = Array.from(document.querySelectorAll("input[data-step]"));
+  const done = store.get("ghcpLab.steps", {});
+  const countEl = document.getElementById("progress-count");
+  const fillEl = document.getElementById("progress-fill");
+  function refreshProgress() {
+    let n = 0;
+    boxes.forEach((box) => {
+      const id = box.dataset.step;
+      const isDone = !!done[id];
+      box.checked = isDone;
+      if (isDone) n++;
+      const card = box.closest(".step");
+      if (card) card.classList.toggle("is-done", isDone);
+      const link = document.querySelector('nav.toc a[href="#' + id + '"]');
+      if (link) link.classList.toggle("is-done", isDone);
+    });
+    countEl.textContent = n + " of " + boxes.length + " steps done";
+    fillEl.style.width = (boxes.length ? Math.round((n / boxes.length) * 100) : 0) + "%";
+  }
+  boxes.forEach((box) => {
+    box.addEventListener("change", () => {
+      if (box.checked) done[box.dataset.step] = true; else delete done[box.dataset.step];
+      store.set("ghcpLab.steps", done);
+      refreshProgress();
+    });
+  });
+  document.getElementById("reset-progress").addEventListener("click", () => {
+    Object.keys(done).forEach((k) => delete done[k]);
+    store.set("ghcpLab.steps", done);
+    refreshProgress();
+  });
+  refreshProgress();
+
+  document.getElementById("theme-toggle").addEventListener("click", () => {
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("ghcpLab.theme", next); } catch (e) { /* storage blocked */ }
+  });
+  document.getElementById("print-btn").addEventListener("click", () => window.print());
+
+  const links = new Map();
+  document.querySelectorAll('nav.toc a[href^="#"]').forEach((a) => links.set(a.getAttribute("href").slice(1), a));
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const link = links.get(entry.target.id);
+        if (!link) return;
+        links.forEach((a) => a.classList.remove("active"));
+        link.classList.add("active");
+      });
+    }, { rootMargin: "-80px 0px -70% 0px" });
+    links.forEach((_, id) => { const el = document.getElementById(id); if (el) observer.observe(el); });
+  }
+})();
+</script>
+</body>
+</html>

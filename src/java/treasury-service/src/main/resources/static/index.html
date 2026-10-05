@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Group Treasury Service - Al Thuraya Holding</title>
+  <style>
+    body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; font-size: 14px; color: #1f1a17; background: #f6f3f1; }
+    header { background: #8a1538; color: #fff; padding: 14px 28px; }
+    header h1 { margin: 0; font-size: 19px; font-weight: 600; }
+    header p { margin: 4px 0 0; opacity: 0.8; font-size: 13px; }
+    main { max-width: 1100px; margin: 0 auto; padding: 20px 28px; }
+    section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); padding: 16px 20px; margin-bottom: 18px; overflow-x: auto; }
+    h2 { font-size: 15px; margin: 0 0 10px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ece6e2; }
+    th { font-size: 12px; color: #6b5f58; text-transform: uppercase; }
+    td.num, th.num { text-align: right; }
+    .ok { color: #12805a; font-weight: 600; }
+    .bad { color: #b42318; font-weight: 600; }
+    code { font-family: Consolas, monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Group Treasury Service</h1>
+    <p>Al Thuraya Holding &middot; bank positions, payment runs and the 13-week cash forecast &middot; REST API for the Group Finance Portal</p>
+  </header>
+  <main>
+    <section><h2>Service status</h2><table id="status"><tbody><tr><td>Loading...</td></tr></tbody></table></section>
+    <section><h2>Bank accounts</h2><table id="accounts"><thead><tr><th>Account</th><th>Bank</th><th>Entity</th><th>Name</th><th>Currency</th><th class="num">Balance (QAR)</th><th>Statement</th></tr></thead><tbody></tbody></table></section>
+    <section><h2>Payment runs</h2><table id="runs"><thead><tr><th>Run</th><th>Value date</th><th>Status</th><th class="num">Payments</th><th class="num">Total (QAR)</th><th>Bank file</th><th>First approval</th></tr></thead><tbody></tbody></table></section>
+    <section><h2>API</h2><p><code>GET api/treasury/position</code> &middot; <code>GET api/payment-runs</code> &middot; <code>GET api/payment-runs/{id}/instructions</code> &middot; <code>POST api/payment-runs/{id}/decision</code> &middot; <code>GET api/status</code> &middot; <code>GET actuator/health</code></p></section>
+  </main>
+  <script>
+    (function () {
+      var esc = function (v) { return String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+      var qar = function (v) { return Number(v).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+      var get = function (url) { return fetch(url, { headers: { Accept: 'application/json' } }).then(function (r) { if (!r.ok) { throw new Error(url + ': HTTP ' + r.status); } return r.json(); }); };
+      var fill = function (id, rows) { document.querySelector('#' + id + ' tbody').innerHTML = rows.join(''); };
+      get('api/status').then(function (s) {
+        fill('status', Object.keys(s).map(function (k) {
+          var cls = k === 'databaseStatus' ? (s[k] === 'UP' ? ' class="ok"' : ' class="bad"') : '';
+          return '<tr><td>' + esc(k) + '</td><td' + cls + '>' + esc(s[k]) + '</td></tr>';
+        }));
+      }).catch(function (e) { fill('status', ['<tr><td class="bad">' + esc(e.message) + '</td></tr>']); });
+      get('api/treasury/position').then(function (p) {
+        fill('accounts', p.accounts.map(function (a) {
+          return '<tr><td>' + esc(a.id) + '</td><td>' + esc(a.bank) + '</td><td>' + esc(a.entity) + '</td><td>' + esc(a.name) + '</td><td>' + esc(a.currency) + '</td><td class="num">' + qar(a.balanceQar) + '</td><td>' + esc(a.statement) + '</td></tr>';
+        }));
+      }).catch(function (e) { fill('accounts', ['<tr><td colspan="7" class="bad">' + esc(e.message) + '</td></tr>']); });
+      get('api/payment-runs').then(function (runs) {
+        fill('runs', runs.slice().reverse().map(function (r) {
+          var decision = r.decision ? esc(r.decision.decision + ' by ' + r.decision.by) : '';
+          return '<tr><td>' + esc(r.id) + '</td><td>' + esc(r.date) + '</td><td>' + esc(r.status) + '</td><td class="num">' + esc(r.payments) + '</td><td class="num">' + qar(r.amountQar) + '</td><td><code>' + esc(r.file) + '</code></td><td>' + decision + '</td></tr>';
+        }));
+      }).catch(function (e) { fill('runs', ['<tr><td colspan="7" class="bad">' + esc(e.message) + '</td></tr>']); });
+    })();
+  </script>
+</body>
+</html>

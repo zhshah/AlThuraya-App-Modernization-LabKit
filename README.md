@@ -351,6 +351,7 @@ Requirements on the presenter's machine:
 | `DEPLOYMENT STOPPED: ...` | Fix the reported cause (e.g. quota, policy) and run the same command again. Full log: `onprem-vm/logs/`. Logs on the VM: `C:\ContosoSetup\logs`. |
 | Portal not reachable from your laptop, but the deployment says healthy | Your outbound IP changed or differs. Re-run `Deploy-Lab.ps1 -AllowedSourceIp <ip>`; it only updates the NSG. |
 | HTTP 500/503 right after starting the VM | SQL Server and Tomcat need 3-5 minutes on the burstable VM. `Update-LabApp.ps1` waits for health automatically. |
+| Starting the VM fails with `AllocationFailed` (no capacity for the VM size) | Resize the deallocated VM to the next size of the fallback list, then start it: `az vm resize -g <rg> -n vm-contoso-web01 --size Standard_D2as_v5` (about USD 0.18/hour instead of 0.05). Resize back to `Standard_B2als_v2` after the event. |
 | Token / Conditional Access errors | `az login --tenant <tenant-id>`, then re-run. |
 | Lost the VM password | `az vm user update -g <rg> -n vm-contoso-web01 -u contosoadmin -p <new-password>` |
 

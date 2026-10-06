@@ -6,6 +6,8 @@ In this lab, the **GitHub Copilot modernization agent** takes that application a
 
 > **Lab guide** – [read it on GitHub (PDF)](docs/lab/lab-guide.pdf) · run the lab from the interactive version [`docs/lab/lab-guide.html`](docs/lab/lab-guide.html) (clone the repo, then open the file in a browser) · presenters: [facilitator guide](docs/lab/facilitator-guide.md)
 
+> **The on-premises environment** – [`scripts/Deploy-OnPremVM.ps1`](scripts/Deploy-OnPremVM.ps1) builds it in Azure with one command (35–50 minutes): a Windows Server VM that mimics the customer's data centre, with IIS, Tomcat and SQL Server Express running the portal, the treasury service and their two databases with demo data. Details: [Deploy, use and destroy the on-premises VM](#deploy-use-and-destroy-the-on-premises-vm).
+
 ![The Group Finance Portal today – the group dashboard on the on-premises server](docs/lab/images/00-portal-dashboard.png)
 
 *The application today: the Group Finance Portal on the customer's on-premises server (English and Arabic, demo data for six group entities).*
@@ -21,7 +23,7 @@ In this lab, the **GitHub Copilot modernization agent** takes that application a
 - [What Copilot writes where](#what-copilot-writes-where)
 - [What's in this repository](#whats-in-this-repository)
 - [Test the lab from a fresh clone](#test-the-lab-from-a-fresh-clone)
-- Reference: [the application](#reference-the-application) · [the lab VM](#deploy-use-and-destroy-the-lab-vm) · [demo walkthrough](#demo-walkthrough-before-modernization) · [assessment findings](#what-the-assessment-should-surface-facilitator-notes) · [local development](#local-development-optional) · [cost and cleanup](#cost-and-cleanup)
+- Reference: [the application](#reference-the-application) · [the on-premises VM](#deploy-use-and-destroy-the-on-premises-vm) · [demo walkthrough](#demo-walkthrough-before-modernization) · [assessment findings](#what-the-assessment-should-surface-facilitator-notes) · [local development](#local-development-optional) · [cost and cleanup](#cost-and-cleanup)
 
 ## The scenario
 
@@ -80,8 +82,8 @@ flowchart LR
 
 | Part | Who | Time | What happens | Result |
 |---|---|---|---|---|
-| 1 – Prepare the lab | Presenter, once | 15 min (VM build 35–50 min, first time only) | The "on-premises" VM runs the portal, the treasury service and SQL Server | Portal online, smoke test passes |
-| 2 – Set up the laptop | Everyone | 30 min, before the event | VS Code, GitHub Copilot modernization, .NET 10 SDK, Build Tools, Node.js, Azure CLI; clone the application | `Test-LabWorkstation.ps1` all OK |
+| 1 – Prepare the lab | Presenter, once | 15 min (VM build 35–50 min, first time only) | `scripts/Deploy-OnPremVM.ps1` builds the "on-premises" VM: the portal, the treasury service and SQL Server | Portal online, smoke test passes |
+| 2 – Set up the laptop | Everyone | 30 min, before the event | VS Code, GitHub Copilot modernization, .NET 10 SDK, Build Tools, Node.js, Azure CLI; clone this repository | `Test-LabWorkstation.ps1` all OK |
 | 3 – Assess | Everyone | 30 min | Copilot assesses the code; you read the report | Findings report, baseline smoke test 15/15 |
 | 4 – Decide and plan | Everyone | 30 min | The customer says yes; Copilot writes one plan per application | Two plans, each ending with a deployment task |
 | 5 – Modernize and deploy | Copilot – you follow | about 3¾ hours | One message runs both plans, then Copilot deploys to Azure | Both apps live on Azure |
@@ -142,7 +144,7 @@ At the end Copilot writes the infrastructure as code (`infra/` – Bicep, a data
 
 ## Validated end to end
 
-On **5 October 2026** the whole path ran in VS Code, **end to end by the GitHub Copilot modernization agent** (extension 1.24.0, Claude Opus 5.5), on a clone of the application repository:
+On **5 October 2026** the whole path ran in VS Code, **end to end by the GitHub Copilot modernization agent** (extension 1.24.0, Claude Opus 5.5), on a clone that held only the application (`src/`, `database/` and the participant scripts):
 
 | Stage | Result |
 |---|---|
@@ -202,12 +204,14 @@ This is the **lab kit** – everything needed to run, rebuild and test the lab:
 | [docs/lab/lab-guide.html](docs/lab/lab-guide.html) | **The lab guide** – one page for presenters and participants, step by step, with copy buttons, progress ticks and your team name in every command. Open it in a browser from a clone; keep `images/` and `sample-plans/` next to it |
 | [docs/lab/](docs/lab/README.md) | Presenter reference: the modules 0–4, the [facilitator guide](docs/lab/facilitator-guide.md), 15 screenshots (`images/`) and the two plans Copilot wrote in the validated run (`sample-plans/`) |
 | `src/`, `database/` | The application: .NET Framework 4.8 portal, Java 8 treasury service, SQL scripts and the demo-data generator |
+| [`scripts/Deploy-OnPremVM.ps1`](scripts/Deploy-OnPremVM.ps1) | **Builds the "on-premises" VM in Azure** with one command: IIS, Tomcat, SQL Server, both applications and their databases with demo data, then tests it |
+| `scripts/Update-OnPremVM.ps1`, `scripts/Remove-OnPremVM.ps1` | Redeploy the app or reset the demo data on that VM; delete the VM's resource group |
+| `scripts/onprem-vm/` | Used by those three scripts: the helper module and the scripts that run on the VM |
 | `scripts/Invoke-SmokeTest.ps1` | End-to-end test (15 checks) – before the migration on the VM, after it on Azure |
 | `scripts/Test-LabWorkstation.ps1` | Checks a participant's laptop for the required tools |
 | `scripts/Copy-DatabasesToAzureSql.ps1` | Optional: copies the VM's real data to Azure SQL (SqlPackage, Entra token) |
-| `onprem-vm/` | Builds, updates and removes the simulated on-premises server on Azure |
 
-Participants don't clone this kit. They clone the application repository [zhshah/AlThuraya-App-Modernization-Lab](https://github.com/zhshah/AlThuraya-App-Modernization-Lab): the same `src/`, `database/` and the two participant scripts, byte-identical to this kit and to the code on the VM, without the lab material. When you change the application here, publish the same change there. When you change the guide, run `./docs/lab/Export-LabGuidePdf.ps1` so the PDF matches.
+Presenters and participants clone this repository. Participants work on their own branch in `C:\Lab\finance-portal` (guide, Part 2); `main` stays in its "before" state. When you change the guide, run `./docs/lab/Export-LabGuidePdf.ps1` so the PDF matches.
 
 ## Test the lab from a fresh clone
 
@@ -219,8 +223,8 @@ start docs/lab/lab-guide.html          # the guide
 
 Then follow the guide:
 
-1. **Part 1 – the lab VM** (presenter, PowerShell 7 + Azure CLI, from this folder): `az login`, check the VM, run the smoke test against it. The lab VM `vm-contoso-web01` (resource group `rg-contoso-onprem-swc`) already exists; rebuild it only if it was removed (`./onprem-vm/Deploy-Lab.ps1 …`, 35–50 minutes). Fresh demo data: `./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData`.
-2. **Parts 2–6 – the participant path**, in a separate folder: clone the application repository, assess with GitHub Copilot modernization, plan (prompt A or B), let Copilot modernize and deploy, then run the same smoke test against Azure.
+1. **Part 1 – the on-premises VM** (presenter, PowerShell 7 + Azure CLI, from this folder): `az login`, check the VM, run the smoke test against it. The lab VM `vm-contoso-web01` (resource group `rg-contoso-onprem-swc`) already exists; build it again only if it was removed (`./scripts/Deploy-OnPremVM.ps1 …`, 35–50 minutes). Fresh demo data: `./scripts/Update-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData`.
+2. **Parts 2–6 – the participant path**: clone this repository again into `C:\Lab\finance-portal`, as participants do, assess with GitHub Copilot modernization, plan (prompt A or B), let Copilot modernize and deploy, then run the same smoke test against Azure.
 3. **Clean up:** `az group delete -n rg-finance-team1 --yes --no-wait`, and deallocate the VM between events (Part 7).
 
 ## Reference: the application
@@ -274,16 +278,18 @@ database/                    Idempotent schema scripts and seed scripts for both
 scripts/Invoke-SmokeTest.ps1 End-to-end test (APIs, page, data, write paths) - reusable after migration
 scripts/Test-LabWorkstation.ps1     Participant workstation check
 scripts/Copy-DatabasesToAzureSql.ps1 Optional: copy the VM's real data to Azure SQL
-docs/lab/                    The lab: lab-guide.html, modules 0-4, facilitator guide, images/, sample-plans/
-onprem-vm/                   One-command lab automation (the simulated on-premises server on Azure)
-  Deploy-Lab.ps1               Deploy everything: Azure VM + server software + running app, then verify
-  Update-LabApp.ps1            Rebuild and redeploy the app on an existing lab VM (-ResetDemoData reloads the data)
-  Remove-Lab.ps1               Delete the lab (resource group, soft-deleted Key Vault, saved password)
+scripts/Deploy-OnPremVM.ps1  One command: Azure VM + server software + running app and databases, then verify
+scripts/Update-OnPremVM.ps1  Rebuild and redeploy the app on an existing lab VM (-ResetDemoData reloads the data)
+scripts/Remove-OnPremVM.ps1  Delete the lab VM (resource group, soft-deleted Key Vault, saved password)
+scripts/onprem-vm/           Used by the three OnPremVM scripts
   LabHelpers.psm1              Shared logic (pre-flight checks, Run Command, health checks)
   server/                      Scripts executed on the VM through Azure Run Command
+docs/lab/                    The lab: lab-guide.html, modules 0-4, facilitator guide, images/, sample-plans/
 ```
 
-## Deploy, use and destroy the lab VM
+## Deploy, use and destroy the on-premises VM
+
+The lab needs a server that looks like the customer's data centre: the application and its databases on one Windows machine. `scripts/Deploy-OnPremVM.ps1` builds that server as an Azure VM, with everything installed, configured and tested.
 
 Requirements on the presenter's machine:
 
@@ -293,25 +299,25 @@ Requirements on the presenter's machine:
 
 ```powershell
 # Deploy (current subscription, Sweden Central, own virtual network) - about 35-50 minutes
-./onprem-vm/Deploy-Lab.ps1
+./scripts/Deploy-OnPremVM.ps1
 
 # Customer subscription / other region / several labs side by side
-./onprem-vm/Deploy-Lab.ps1 -SubscriptionId <id> -Location westeurope -ResourceGroup rg-contoso-lab-fabrikam
+./scripts/Deploy-OnPremVM.ps1 -SubscriptionId <id> -Location westeurope -ResourceGroup rg-contoso-lab-fabrikam
 
 # Place the VM in an existing subnet instead (for example the Connectivity Hub lab)
-./onprem-vm/Deploy-Lab.ps1 -ResourceGroup rg-contoso-onprem-swc -VnetResourceGroup sweden-central-vnet -VnetName Sweden-vNet -SubnetName default
+./scripts/Deploy-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc -VnetResourceGroup sweden-central-vnet -VnetName Sweden-vNet -SubnetName default
 
 # Redeploy after source changes (~3-5 minutes) - keeps the demo data
-./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-lab
+./scripts/Update-OnPremVM.ps1 -ResourceGroup rg-contoso-lab
 
 # Reset the demo data (e.g. before the next customer session)
-./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-lab -ResetDemoData
+./scripts/Update-OnPremVM.ps1 -ResourceGroup rg-contoso-lab -ResetDemoData
 
 # Destroy everything (asks for confirmation; -Force skips it)
-./onprem-vm/Remove-Lab.ps1 -ResourceGroup rg-contoso-lab
+./scripts/Remove-OnPremVM.ps1 -ResourceGroup rg-contoso-lab
 ```
 
-`Deploy-Lab.ps1` runs these phases and ends with the URLs, the RDP command and how to get the VM password:
+`Deploy-OnPremVM.ps1` runs these phases and ends with the URLs, the RDP command and how to get the VM password:
 
 1. **Pre-flight**: checks sign-in, resource providers, VM sizes and vCPU quota.
 2. **Azure resources**: creates the resource group, Key Vault, network and VM.
@@ -337,7 +343,7 @@ Requirements on the presenter's machine:
 - **Verified data:** after loading, the deployment compares what the portal serves with the generated dataset and stops on any difference. The smoke test's write checks only send requests the server must refuse, so it never changes the demo data.
 - **No storage account or blob RBAC:** the source is shipped inside the Run Command script itself (tested up to 1 MB).
 - **Pre-flight capacity check:** falls back to other VM sizes when a size isn't offered or vCPU quota is short.
-- **Repeatable names:** derived from subscription + resource group. A soft-deleted Key Vault is recovered, and `Remove-Lab.ps1` purges it, so the same lab can be redeployed right away.
+- **Repeatable names:** derived from subscription + resource group. A soft-deleted Key Vault is recovered, and `Remove-OnPremVM.ps1` purges it, so the same lab can be redeployed right away.
 - **Contributor is enough:** Key Vault uses access policies, so no role-assignment rights are needed. If Key Vault is blocked by policy, the password stays only on the deploying machine.
 - **Safe re-runs:** Run Command retries while the VM agent is busy, and a stopped VM is started automatically.
 - **Correct file permissions:** the Tomcat config file gets a folder-inherited ACL, so the service can read it.
@@ -348,9 +354,9 @@ Requirements on the presenter's machine:
 
 | Symptom | Fix |
 |---|---|
-| `DEPLOYMENT STOPPED: ...` | Fix the reported cause (e.g. quota, policy) and run the same command again. Full log: `onprem-vm/logs/`. Logs on the VM: `C:\ContosoSetup\logs`. |
-| Portal not reachable from your laptop, but the deployment says healthy | Your outbound IP changed or differs. Re-run `Deploy-Lab.ps1 -AllowedSourceIp <ip>`; it only updates the NSG. |
-| HTTP 500/503 right after starting the VM | SQL Server and Tomcat need 3-5 minutes on the burstable VM. `Update-LabApp.ps1` waits for health automatically. |
+| `DEPLOYMENT STOPPED: ...` | Fix the reported cause (e.g. quota, policy) and run the same command again. Full log: `scripts/onprem-vm/logs/`. Logs on the VM: `C:\ContosoSetup\logs`. |
+| Portal not reachable from your laptop, but the deployment says healthy | Your outbound IP changed or differs. Re-run `Deploy-OnPremVM.ps1 -AllowedSourceIp <ip>`; it only updates the NSG. |
+| HTTP 500/503 right after starting the VM | SQL Server and Tomcat need 3-5 minutes on the burstable VM. `Update-OnPremVM.ps1` waits for health automatically. |
 | Starting the VM fails with `AllocationFailed` (no capacity for the VM size) | Resize the deallocated VM to the next size of the fallback list, then start it: `az vm resize -g <rg> -n vm-contoso-web01 --size Standard_D2as_v5` (about USD 0.18/hour instead of 0.05). Resize back to `Standard_B2als_v2` after the event. |
 | Token / Conditional Access errors | `az login --tenant <tenant-id>`, then re-run. |
 | Lost the VM password | `az vm user update -g <rg> -n vm-contoso-web01 -u contosoadmin -p <new-password>` |
@@ -371,7 +377,7 @@ To show the portal to the audience during an event, add an NSG rule for port 80 
    - SSMS with both databases, for example `SELECT TOP 10 * FROM ThurayaFinance.dbo.audit_log ORDER BY event_at DESC`,
    - the files under `C:\ThurayaData`.
 
-To start the next session with fresh data, run `Update-LabApp.ps1 -ResetDemoData`.
+To start the next session with fresh data, run `Update-OnPremVM.ps1 -ResetDemoData`.
 
 ## What the assessment should surface (facilitator notes)
 
@@ -392,7 +398,7 @@ To start the next session with fresh data, run `Update-LabApp.ps1 -ResetDemoData
 
 ## Local development (optional)
 
-- **Databases**: on SQL Server Express (`.\SQLEXPRESS`), run `database/00-create-databases.sql` and both `01-schema.sql` scripts. Generate the data with `node database/seed/generate-dataset.js dataset.json`, then run both `02-seed.sql` scripts with the file's content as the `@data` parameter (as `onprem-vm/server/Deploy-FinancePortal.ps1` does).
+- **Databases**: on SQL Server Express (`.\SQLEXPRESS`), run `database/00-create-databases.sql` and both `01-schema.sql` scripts. Generate the data with `node database/seed/generate-dataset.js dataset.json`, then run both `02-seed.sql` scripts with the file's content as the `@data` parameter (as `scripts/onprem-vm/server/Deploy-FinancePortal.ps1` does).
 - **Java**: install JDK 8+ and Maven. Run `mvn spring-boot:run -Dspring-boot.run.arguments=--server.servlet.context-path=/treasury-service` in `src/java/treasury-service` (port 8080). Create the SQL login `thuraya_treasury` with the password from `application.properties`, or override `spring.datasource.*`.
 - **.NET**: open `src/dotnet/ThurayaFinance.sln` in Visual Studio with the ASP.NET workload and run it with IIS Express. Your Windows account needs access to `ThurayaFinance`. The UI is in `assets/` (`app.js`, `i18n.js`, `app.css`): the stand-alone portal's UI, with its data and actions wired to the server.
 
@@ -402,6 +408,6 @@ Standard_B2als_v2 Windows costs about USD 35 per month, plus a Standard SSD OS d
 
 ```powershell
 az vm deallocate -g rg-contoso-lab -n vm-contoso-web01   # stop compute billing between sessions
-az vm start      -g rg-contoso-lab -n vm-contoso-web01   # or simply run Update-LabApp.ps1, which starts the VM
-./onprem-vm/Remove-Lab.ps1 -ResourceGroup rg-contoso-lab  # delete everything after the customer session
+az vm start      -g rg-contoso-lab -n vm-contoso-web01   # or simply run Update-OnPremVM.ps1, which starts the VM
+./scripts/Remove-OnPremVM.ps1 -ResourceGroup rg-contoso-lab  # delete everything after the customer session
 ```

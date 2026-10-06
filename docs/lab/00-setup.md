@@ -71,13 +71,13 @@ The agents download tools and packages while they work. These must be reachable 
 ```powershell
 mkdir C:\Lab -Force
 cd C:\Lab
-git clone https://github.com/zhshah/AlThuraya-App-Modernization-Lab.git finance-portal
+git clone https://github.com/zhshah/AlThuraya-App-Modernization-LabKit.git finance-portal
 cd finance-portal
 git checkout -b modernize/team1                   # your team name
 code .
 ```
 
-The repository holds the application exactly as it runs on the lab VM: `src/` (portal and treasury service), `database/` and the `scripts/` you use in the lab. It is private: your facilitator gives your GitHub account access, or your team its own copy. Don't push to `main` – it stays in its "before" state for the next session.
+The repository is the lab kit: the application exactly as it runs on the lab VM – `src/` (portal and treasury service) and `database/` – plus `scripts/` (the tests you run in the lab and the on-premises VM scripts) and `docs/` (the lab guide). It is private: your facilitator gives your GitHub account access, or your team its own copy. Don't push to `main` – it stays in its "before" state for the next session.
 
 `code .` opens `C:\Lab\finance-portal` in VS Code. Work in this window for the whole lab: GitHub Copilot modernization works on the folder that is open (with no folder open, its QuickStart shows only **Open Folder**). When VS Code asks, choose **Yes, I trust the authors** (the agents can't run in Restricted Mode). Sign in to GitHub Copilot (Accounts menu, bottom left) and to Azure: `az login`.
 

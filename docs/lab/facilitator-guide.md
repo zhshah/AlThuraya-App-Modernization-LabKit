@@ -2,19 +2,23 @@
 
 For the people who run the hackathon or the customer demo. Participants follow [the lab](README.md).
 
-The lab kit – guide, lab scripts and application – is the private repository [zhshah/AlThuraya-App-Modernization-LabKit](https://github.com/zhshah/AlThuraya-App-Modernization-LabKit). Clone it and run the presenter commands from its root.
+The lab kit – guide, on-premises VM scripts and application – is the private repository [zhshah/AlThuraya-App-Modernization-LabKit](https://github.com/zhshah/AlThuraya-App-Modernization-LabKit). Clone it and run the presenter commands from its root.
 
 ## 1. Prepare the environment
 
 ### The "on-premises" server (per team, or shared)
 
-The lab VM already exists: `vm-contoso-web01` in resource group `rg-contoso-onprem-swc` – portal <http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com>, treasury service <http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service>. Only to rebuild it (35–50 minutes; same subscription and resource group give the same names and addresses):
+The lab mimics the customer's data centre with one Azure VM on which the application and its databases run: IIS with the portal, Tomcat with the treasury service, SQL Server Express with both databases and demo data. `scripts/Deploy-OnPremVM.ps1` builds it with one command and tests it.
+
+The lab VM already exists: `vm-contoso-web01` in resource group `rg-contoso-onprem-swc` – portal <http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com>, treasury service <http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service>. Only to build it again (35–50 minutes; same subscription and resource group give the same names and addresses):
 
 ```powershell
-./onprem-vm/Deploy-Lab.ps1 -ResourceGroup rg-contoso-onprem-swc -VnetResourceGroup sweden-central-vnet -VnetName Sweden-vNet -SubnetName default
+./scripts/Deploy-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc -VnetResourceGroup sweden-central-vnet -VnetName Sweden-vNet -SubnetName default
 ```
 
-- **Before every event:** `./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData` – fresh data, and the latest `scripts/` on the VM (`C:\ContosoSetup\src\scripts`, used by the optional data copy in Module 4).
+A lab of your own needs only a resource group name – the script then creates its own network: `./scripts/Deploy-OnPremVM.ps1 -ResourceGroup rg-contoso-lab`. All options: [README](../../README.md#deploy-use-and-destroy-the-on-premises-vm).
+
+- **Before every event:** `./scripts/Update-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData` – fresh data, and the latest `scripts/` on the VM (`C:\ContosoSetup\src\scripts`, used by the optional data copy in Module 4).
 - **Give each team:** its team name (`team1`, `team2`, …) and the RDP password (`az keyvault secret show --vault-name kv-contoso-onprem-0720c -n vm-admin-password --query value -o tsv`). All addresses are already in [lab-guide.html](lab-guide.html).
 - **One VM for several teams?** It works: teams only browse the portal and run the smoke test against it – Copilot's deployment loads demo data, not the VM's data. Only the optional real-data path in Module 4 needs RDP; Windows Server allows two concurrent sessions, so teams take turns (about 15 minutes each).
 - The NSG only admits the presenter's internet address (RDP, 80, 8080). On the day, allow the venue's address with the commands in [lab-guide.html](lab-guide.html), step 1.5 – no redeployment needed.
@@ -30,7 +34,7 @@ The lab VM already exists: `vm-contoso-web01` in resource group `rg-contoso-onpr
 
 - Licenses with **premium requests** for every participant. A full run (assessment, two plans, two executions, deployment) uses a lot of them.
 - Organization policies: agent mode, MCP servers and preview features must be allowed.
-- Repository: participants clone [zhshah/AlThuraya-App-Modernization-Lab](https://github.com/zhshah/AlThuraya-App-Modernization-Lab) – the application exactly as it runs on the lab VM (`src/`, `database/`, the smoke test and the workstation check; verified byte-identical). It is private: add participants as collaborators (read access is enough to clone), or give each team its own copy. Keep `main` in its clean "before" state – no `.github/modernize` or `.github/upgrades` folders, and teams don't push to it. When you change the application in this kit, update that repository too, so the VM and the repository run the same code.
+- Repository: participants clone this lab kit, [zhshah/AlThuraya-App-Modernization-LabKit](https://github.com/zhshah/AlThuraya-App-Modernization-LabKit) – the application exactly as it runs on the lab VM (`src/`, `database/`), the scripts and this guide. It is private: add participants as collaborators (read access is enough to clone), or give each team its own copy. Keep `main` in its clean "before" state – no `.github/modernize` or `.github/upgrades` folders, and teams don't push to it. After changing the application, run `./scripts/Update-OnPremVM.ps1` so the VM and the repository run the same code.
 
 ### Workstations
 
@@ -103,7 +107,7 @@ Validated on **2026-10-02** against the lab in this repository, in throw-away co
 | Execution – .NET | `modernize plan execute` (no-deploy plan, Azure CLI isolated) | **All 8 tasks succeeded in about 105 min** (two sessions: the first was cut off by DNS failures, see Troubleshooting; the resume finished the open task and the rest), one commit each: baseline (34 test cases); .NET 10 / ASP.NET Core MVC; Azure SQL with managed identity; ACS Email; OpenTelemetry + Azure Monitor; treasury URL from configuration; post-migration tests, which caught and fixed a regression from the upgrade (missing CSRF token → 500 instead of 403) – 6 of 34 cases ran, the 28 database cases had no local SQL engine; CVE scan: none in 13 packages. Independent check: `dotnet build` 0 warnings, 0 errors; `dotnet test` 6/6; the app starts on .NET 10 – pages and assets 200, POST without CSRF token 403 |
 | Data migration | `scripts/Copy-DatabasesToAzureSql.ps1` on the lab VM → Entra-only Azure SQL | 19 tables / 1,902 rows and 7 tables / 279 rows identical; about 4 min |
 
-Validated again on **2026-10-05** – the whole VS Code path, in a clone of the lab repository (GitHub Copilot modernization 1.24.0, Claude Opus 5.5):
+Validated again on **2026-10-05** – the whole VS Code path, in a clone that held only the application – `src/`, `database/` and the participant scripts (GitHub Copilot modernization 1.24.0, Claude Opus 5.5):
 
 | Step | Result |
 |---|---|
@@ -116,6 +120,7 @@ Validated again on **2026-10-05** – the whole VS Code path, in a clone of the 
 **Not yet validated – do one full dry run before the first event:**
 
 - the VS Code click path on a participant-spec workstation (validated on a presenter laptop);
+- Parts 3–6 in a clone of the whole lab kit, as participants now clone it – the validated clone held only the application;
 - the `@upgrade` guided path (Module 3, alternative);
 - the portal's 28 database test cases with a local SQL Server or Docker (Module 0, optional);
 - prompts A and B word for word – the validated run let Copilot choose its own names and region; the prompts fix the names, B1 and an existing resource group – and how long prompt B's extra security work takes;
@@ -124,7 +129,7 @@ Validated again on **2026-10-05** – the whole VS Code path, in a clone of the 
 ## 6. Reset and clean up
 
 ```powershell
-./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData   # between sessions: fresh demo data
+./scripts/Update-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData   # between sessions: fresh demo data
 az group delete -n rg-finance-team1 --yes --no-wait                                 # each team's Azure resources - repeat for team2, team3, ...
-./onprem-vm/Remove-Lab.ps1 -ResourceGroup rg-contoso-onprem-swc                     # after the event: the on-premises lab
+./scripts/Remove-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc                  # after the event: the on-premises lab
 ```

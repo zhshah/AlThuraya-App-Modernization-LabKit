@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-# Shared helpers for Deploy-Lab.ps1, Update-LabApp.ps1 and Remove-Lab.ps1.
+# Shared helpers for scripts/Deploy-OnPremVM.ps1, Update-OnPremVM.ps1 and Remove-OnPremVM.ps1.
 Set-StrictMode -Version Latest
 
 function Invoke-Az {
@@ -258,6 +258,8 @@ function Publish-LabApp([string]$RepoRoot, [string]$ResourceGroup, [string]$VmNa
         foreach ($folder in 'src', 'database', 'scripts') {
             Copy-Item -Path (Join-Path $RepoRoot $folder) -Destination (Join-Path $staging $folder) -Recurse
         }
+        # The VM automation is not part of the application the server runs.
+        Remove-Item (Join-Path $staging 'scripts/onprem-vm'), (Join-Path $staging 'scripts/*-OnPremVM.ps1') -Recurse -Force
         Get-ChildItem $staging -Recurse -Directory -Include 'bin', 'obj', 'packages', 'target', '.vs' |
             Sort-Object { $_.FullName.Length } -Descending | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
         Compress-Archive -Path (Join-Path $staging '*') -DestinationPath $package

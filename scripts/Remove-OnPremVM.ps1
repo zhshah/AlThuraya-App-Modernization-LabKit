@@ -5,11 +5,11 @@
 
 .DESCRIPTION
     Only the lab resource group is deleted. When the lab was placed in an existing virtual network
-    (-VnetName on Deploy-Lab.ps1) that network is not touched - the VM's NIC lives in the lab resource group.
+    (-VnetName on Deploy-OnPremVM.ps1) that network is not touched - the VM's NIC lives in the lab resource group.
     Asks you to type the resource group name unless -Force is used.
 
 .EXAMPLE
-    ./onprem-vm/Remove-Lab.ps1 -ResourceGroup rg-contoso-lab
+    ./scripts/Remove-OnPremVM.ps1 -ResourceGroup rg-contoso-lab
 #>
 [CmdletBinding()]
 param(
@@ -20,7 +20,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-Import-Module (Join-Path $PSScriptRoot 'LabHelpers.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'onprem-vm/LabHelpers.psm1') -Force
 $stopwatch = [Diagnostics.Stopwatch]::StartNew()
 
 try {

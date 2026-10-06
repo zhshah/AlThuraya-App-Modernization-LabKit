@@ -10,10 +10,10 @@
     -ResetDemoData reloads the original data, dated relative to today.
 
 .EXAMPLE
-    ./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-lab
+    ./scripts/Update-OnPremVM.ps1 -ResourceGroup rg-contoso-lab
 
 .EXAMPLE
-    ./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-lab -ResetDemoData
+    ./scripts/Update-OnPremVM.ps1 -ResourceGroup rg-contoso-lab -ResetDemoData
     Redeploys and resets the demo data before the next customer session.
 #>
 [CmdletBinding()]
@@ -28,7 +28,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $repoRoot = Split-Path $PSScriptRoot -Parent
-Import-Module (Join-Path $PSScriptRoot 'LabHelpers.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'onprem-vm/LabHelpers.psm1') -Force
 $stopwatch = [Diagnostics.Stopwatch]::StartNew()
 
 try {
@@ -36,7 +36,7 @@ try {
     $account = Connect-LabSubscription $SubscriptionId
     $names = Get-LabNames -SubscriptionId $account.id -ResourceGroup $ResourceGroup -VmName $VmName
     if (-not (Get-AzJsonOrNull vm show -g $ResourceGroup -n $VmName --query id -o json)) {
-        throw "VM $VmName not found in $ResourceGroup ($($account.name)). Deploy the lab first: ./onprem-vm/Deploy-Lab.ps1 -ResourceGroup $ResourceGroup"
+        throw "VM $VmName not found in $ResourceGroup ($($account.name)). Deploy it first: ./scripts/Deploy-OnPremVM.ps1 -ResourceGroup $ResourceGroup"
     }
     Wait-LabVm -ResourceGroup $ResourceGroup -VmName $VmName
 
@@ -48,7 +48,7 @@ try {
     if (-not $SkipExternalTest) {
         Write-Phase 'End-to-end test from this machine through the public URL'
         if (-not (Test-LabAppExternally -RepoRoot $repoRoot -Fqdn $fqdn)) {
-            Write-Warning 'The app is healthy on the VM but not reachable from this machine - re-run Deploy-Lab.ps1 with -AllowedSourceIp <your ip>.'
+            Write-Warning 'The app is healthy on the VM but not reachable from this machine - re-run Deploy-OnPremVM.ps1 with -AllowedSourceIp <your ip>.'
         }
     }
     Write-Phase ('Updated in {0:hh\:mm\:ss}' -f $stopwatch.Elapsed)

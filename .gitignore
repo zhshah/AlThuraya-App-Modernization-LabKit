@@ -12,8 +12,8 @@ src/java/**/target/
 .idea/
 *.iml
 
-# Lab deployment logs (onprem-vm/Deploy-Lab.ps1)
-onprem-vm/logs/
+# On-premises VM deployment logs (scripts/Deploy-OnPremVM.ps1)
+scripts/onprem-vm/logs/
 
 # OS / editor
 Thumbs.db

@@ -13,7 +13,9 @@
 [CmdletBinding()]
 param(
     [string]$EdgePath = (@("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") |
-        Where-Object { Test-Path $_ } | Select-Object -First 1)
+        Where-Object { Test-Path $_ } | Select-Object -First 1),
+    # Where the PDF's links to files next to the guide (README.md, modules, sample plans) point.
+    [string]$DocsUrl = 'https://github.com/zhshah/AlThuraya-App-Modernization-LabKit/blob/main/docs/lab/'
 )
 $ErrorActionPreference = 'Stop'
 if (-not $EdgePath) { throw 'Microsoft Edge was not found.' }
@@ -89,6 +91,8 @@ try {
         Replace('<head>', "<head><base href=`"$base`">").
         Replace('<details>', '<details open>').
         Replace(' loading="lazy"', '')
+    # Relative links would become file:// links to this machine; the images keep using the local <base>.
+    $html = [regex]::Replace($html, '(<a\b[^>]*?\shref=")(?![a-z]+:|#)([^"]+)"', { param($m) $m.Groups[1].Value + $DocsUrl + $m.Groups[2].Value + '"' })
     $page = Join-Path $work 'lab-guide.html'
     $pdf = Join-Path $work 'lab-guide.pdf'
     $pages = @{}

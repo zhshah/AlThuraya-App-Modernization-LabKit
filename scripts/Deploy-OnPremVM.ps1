@@ -1,8 +1,9 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Deploys the complete Group Finance Portal (Al Thuraya Holding) modernization lab with one command: an Azure VM
-    that plays the customer's on-premises server, the server software, and the running .NET Framework + Java application.
+    Deploys the lab's "on-premises" server with one command: an Azure VM that mimics the customer's data centre, with
+    IIS, Tomcat and SQL Server, the running .NET Framework + Java application (Group Finance Portal, Al Thuraya Holding)
+    and its two databases with demo data.
 
 .DESCRIPTION
     Phases - all idempotent: after any interruption simply run the same command again.
@@ -13,17 +14,17 @@
       4. Application     Build on the server, deploy to IIS + Tomcat, smoke test        (Run Command, ~3 min)
       5. Right-size      Resize to the cheap demo size and wait until everything is healthy
       6. Verify          End-to-end smoke test from this machine through the public URL
-    Every resource is tagged SecurityControl=Ignore. Delete everything with ./onprem-vm/Remove-Lab.ps1.
+    Every resource is tagged SecurityControl=Ignore. Delete everything with ./scripts/Remove-OnPremVM.ps1.
 
 .EXAMPLE
-    ./onprem-vm/Deploy-Lab.ps1
+    ./scripts/Deploy-OnPremVM.ps1
     Current Azure CLI subscription, Sweden Central, resource group rg-contoso-lab with its own virtual network.
 
 .EXAMPLE
-    ./onprem-vm/Deploy-Lab.ps1 -SubscriptionId <subscription-id> -Location westeurope -ResourceGroup rg-contoso-lab-fabrikam
+    ./scripts/Deploy-OnPremVM.ps1 -SubscriptionId <subscription-id> -Location westeurope -ResourceGroup rg-contoso-lab-fabrikam
 
 .EXAMPLE
-    ./onprem-vm/Deploy-Lab.ps1 -ResourceGroup rg-contoso-onprem-swc -VnetResourceGroup sweden-central-vnet -VnetName Sweden-vNet -SubnetName default
+    ./scripts/Deploy-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc -VnetResourceGroup sweden-central-vnet -VnetName Sweden-vNet -SubnetName default
     Places the VM in an existing subnet instead of creating a virtual network.
 #>
 [CmdletBinding()]
@@ -52,8 +53,9 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $repoRoot = Split-Path $PSScriptRoot -Parent
-Import-Module (Join-Path $PSScriptRoot 'LabHelpers.psm1') -Force
-$logDir = Join-Path $PSScriptRoot 'logs'
+$vmScripts = Join-Path $PSScriptRoot 'onprem-vm'
+Import-Module (Join-Path $vmScripts 'LabHelpers.psm1') -Force
+$logDir = Join-Path $vmScripts 'logs'
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $logFile = Join-Path $logDir ('deploy-{0}-{1:yyyyMMdd-HHmmss}.log' -f $ResourceGroup, (Get-Date))
 Start-Transcript -Path $logFile | Out-Null
@@ -209,11 +211,11 @@ try {
 
     # ------------------------------------------------------------------ 3. Server software
     Write-Phase '3/6 Server software: IIS, SQL Server 2022 Express, JDK 8, Tomcat 9 (~8 min on first run)'
-    $output = Invoke-LabRunCommand -ResourceGroup $ResourceGroup -VmName $VmName -ScriptPath (Join-Path $PSScriptRoot 'server/Install-Prerequisites.ps1') `
+    $output = Invoke-LabRunCommand -ResourceGroup $ResourceGroup -VmName $VmName -ScriptPath (Join-Path $vmScripts 'server/Install-Prerequisites.ps1') `
         -Parameters @('Phase=Runtime') -SuccessMarker 'PREREQUISITES_OK' -Activity 'Server runtime installation'
     Write-RunCommandSummary -Output $output -StartPattern 'Summary'
     Write-Phase '3/6 Server software: VS Build Tools, NuGet, Maven, SSMS (15-30 min on first run)'
-    $output = Invoke-LabRunCommand -ResourceGroup $ResourceGroup -VmName $VmName -ScriptPath (Join-Path $PSScriptRoot 'server/Install-Prerequisites.ps1') `
+    $output = Invoke-LabRunCommand -ResourceGroup $ResourceGroup -VmName $VmName -ScriptPath (Join-Path $vmScripts 'server/Install-Prerequisites.ps1') `
         -Parameters @('Phase=BuildTools') -SuccessMarker 'PREREQUISITES_OK' -Activity 'Build tools installation'
     Write-RunCommandSummary -Output $output -StartPattern 'Summary'
 
@@ -251,9 +253,9 @@ try {
     Write-Host "  RDP                                : mstsc /v:$fqdn   (user $AdminUsername)"
     Write-Host "  VM password                        : $(Get-LabPasswordHint -KeyVaultName $names.KeyVault -CredentialPath $credentialPath)"
     Write-Host "  VM size                            : $targetSize"
-    Write-Host "  Redeploy after code changes        : ./onprem-vm/Update-LabApp.ps1 -ResourceGroup $ResourceGroup"
+    Write-Host "  Redeploy after code changes        : ./scripts/Update-OnPremVM.ps1 -ResourceGroup $ResourceGroup"
     Write-Host "  Stop billing between sessions      : az vm deallocate -g $ResourceGroup -n $VmName"
-    Write-Host "  Delete the lab                     : ./onprem-vm/Remove-Lab.ps1 -ResourceGroup $ResourceGroup"
+    Write-Host "  Delete the lab                     : ./scripts/Remove-OnPremVM.ps1 -ResourceGroup $ResourceGroup"
     Write-Host "  Log                                : $logFile"
     if (-not $externalOk) {
         Write-Warning ('The app is healthy on the VM but this machine could not complete the test through the public URL. ' +

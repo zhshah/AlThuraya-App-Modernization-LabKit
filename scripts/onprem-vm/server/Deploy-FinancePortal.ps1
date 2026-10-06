@@ -150,7 +150,7 @@ function Install-NodeRuntime {
 try {
     # ------------------------------------------------------------------ 1. Source
     Write-Step 'Unpacking the embedded source package'
-    if ($SourcePackageBase64.StartsWith('__')) { throw 'No source package is embedded - deploy with Deploy-Lab.ps1 or Update-LabApp.ps1.' }
+    if ($SourcePackageBase64.StartsWith('__')) { throw 'No source package is embedded - deploy with scripts/Deploy-OnPremVM.ps1 or scripts/Update-OnPremVM.ps1.' }
     $zip = Join-Path $SetupRoot 'finance-portal-source.zip'
     [IO.File]::WriteAllBytes($zip, [Convert]::FromBase64String($SourcePackageBase64))
     Remove-Variable SourcePackageBase64

@@ -422,8 +422,13 @@ nav.toc .pnum::after { content: " \00B7  "; }
   .pc-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; padding-top: 5mm; border-top: 0.5pt solid rgba(255,255,255,0.38); font-size: 8.4pt; line-height: 1.5; color: #fbe4eb; }
   .pc-foot strong { color: #fff; font-size: 10.5pt; }
   .pc-foot .right { text-align: right; }
+  .print-cover a { color: #fff; text-decoration: none; }
+  .pc-foot > div:first-child { flex: none; }
+  .pc-foot a { white-space: nowrap; }
   .print-back { break-before: page; }
   .print-back .pc-title { margin-top: 0; font-size: 23pt; }
+  .pb-note { margin: 3mm 0 0; font-size: 9pt; color: #f6c9d6; }
+  .pb-note code { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); color: #fff; }
   .pb-changes { margin-top: 10mm; border-radius: 3mm; overflow: hidden; border: 0.5pt solid rgba(255,255,255,0.35); }
   .pb-head, .pb-row { display: grid; grid-template-columns: 1fr 9mm 1fr; align-items: center; }
   .pb-head { padding: 2.4mm 4mm; background: rgba(255,255,255,0.16); font-size: 8pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #f6c9d6; }
@@ -554,8 +559,8 @@ nav.toc .pnum::after { content: " \00B7  "; }
       <div class="pc-stat"><b>&asymp; 3&frac34; h</b><span>from approved plans to live on Azure</span></div>
     </div>
     <div class="pc-foot">
-      <div><strong>Zahir Hussain Shah</strong><br>Sr. Solution Engineer, Cloud &amp; AI &ndash; Infra &middot; Microsoft Qatar</div>
-      <div class="right">Validated end to end &middot; October 2026<br>.NET 10 &middot; Java 21 &middot; Azure App Service &middot; Azure SQL</div>
+      <div><strong>Zahir Hussain Shah</strong><br>Sr. Solution Engineer, Cloud &amp; AI &ndash; Infra<br>Microsoft Qatar</div>
+      <div class="right">Validated end to end &middot; October 2026<br>.NET 10 &middot; Java 21 &middot; Azure App Service &middot; Azure SQL<br><a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">github.com/zhshah/AlThuraya-App-Modernization-LabKit</a></div>
     </div>
   </div>
 </section>
@@ -668,6 +673,7 @@ nav.toc .pnum::after { content: " \00B7  "; }
   <div class="card">
     <h3>The scenario</h3>
     <p><strong>Al Thuraya Holding</strong> (fictitious) runs its <strong>Group Finance Portal</strong> on one Windows server in its own data centre: an <strong>ASP.NET MVC 5 portal on .NET Framework 4.8</strong> in IIS, a <strong>Java 8 / Spring Boot 2.7 treasury service</strong> in Tomcat, and two <strong>SQL Server</strong> databases. The CFO wants it on Azure – without a rewrite project.</p>
+    <p>In the lab, an Azure VM mimics that on-premises server: the application and its databases run on one Windows server, as in the customer's data centre. One script in the lab kit builds it – <code>scripts/Deploy-OnPremVM.ps1</code> (<a href="#s1-2">1.2</a>).</p>
     <div class="arch">
       <div class="zone">
         <div class="zone-title">Before – the customer's server (the lab VM)</div>
@@ -704,8 +710,8 @@ nav.toc .pnum::after { content: " \00B7  "; }
     <div class="table-wrap"><table>
       <thead><tr><th>Tool</th><th>What it does here</th><th>Part</th></tr></thead>
       <tbody>
-        <tr><td>PowerShell 7 and Azure CLI</td><td>Run the lab scripts and the Azure commands – Copilot's deployment uses your Azure CLI sign-in</td><td>1, 5, 6</td></tr>
-        <tr><td>Lab scripts (<code>onprem-vm/</code>)</td><td>Create, refresh and remove the "on-premises" VM</td><td>1, 7</td></tr>
+        <tr><td>PowerShell 7 and Azure CLI</td><td>Run the on-premises VM scripts and the Azure commands – Copilot's deployment uses your Azure CLI sign-in</td><td>1, 5, 6</td></tr>
+        <tr><td>On-premises VM scripts – <code>scripts/Deploy-OnPremVM.ps1</code>, <code>Update-OnPremVM.ps1</code>, <code>Remove-OnPremVM.ps1</code></td><td>Build the "on-premises" VM with the running application and its databases, refresh it, remove it</td><td>1, 7</td></tr>
         <tr><td>VS Code with <span class="chip">GitHub Copilot modernization</span> – chat agent <code>modernize</code></td><td>Assessment, plans, code changes and the deployment to Azure</td><td>3–5</td></tr>
         <tr><td><span class="chip">AppCAT</span></td><td>The analysis engine behind the assessment – installed automatically</td><td>3</td></tr>
         <tr><td>Bicep and a deployment script – written by Copilot</td><td>Create the Azure resources and deploy both apps (<code>infra/</code>)</td><td>5</td></tr>
@@ -729,7 +735,7 @@ nav.toc .pnum::after { content: " \00B7  "; }
         <tr><td><strong>Treasury service</strong></td><td><a href="http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service/">http://contoso-onprem-0720c.swedencentral.cloudapp.azure.com:8080/treasury-service</a></td><td>The Java service behind the portal: bank accounts, cash and payment runs – Java 8 on Tomcat, port 8080 of the same VM</td></tr>
         <tr><td><strong>Remote Desktop</strong></td><td><code>contoso-onprem-0720c.swedencentral.cloudapp.azure.com</code></td><td>Sign-in to the VM itself – user <code>contosoadmin</code>, password from your presenter</td></tr>
         <tr><th colspan="3">The code</th></tr>
-        <tr><td><strong>Repository</strong></td><td><a href="https://github.com/zhshah/AlThuraya-App-Modernization-Lab">github.com/zhshah/AlThuraya-App-Modernization-Lab</a></td><td>The application's source code – the same code that runs on the VM. Private: your presenter gives you access.</td></tr>
+        <tr><td><strong>Repository</strong></td><td><a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">github.com/zhshah/AlThuraya-App-Modernization-LabKit</a></td><td>The lab kit: the application's source code – the same code that runs on the VM – the scripts that build the on-premises VM, and this guide. Private: your presenter gives you access.</td></tr>
         <tr><th colspan="3">After Part 5 – on Azure, created by Copilot</th></tr>
         <tr><td><strong>Portal</strong></td><td><code>https://app-portal-0720c-<span class="v" data-v="team">team1</span>.azurewebsites.net</code></td><td>The same portal on App Service, .NET 10</td></tr>
         <tr><td><strong>Treasury service</strong></td><td><code>https://app-treasury-0720c-<span class="v" data-v="team">team1</span>.azurewebsites.net</code></td><td>The same service on App Service, Java 21</td></tr>
@@ -748,12 +754,12 @@ nav.toc .pnum::after { content: " \00B7  "; }
     <div class="part-letter">1</div>
     <div>
       <h2>Prepare the lab</h2>
-      <p class="part-meta"><span class="role presenter">Presenter</span> Run these from the lab kit folder (the one with <code>onprem-vm/</code>) in PowerShell 7</p>
-      <div class="chips"><span class="chip neutral">PowerShell 7</span><span class="chip neutral">Azure CLI</span><span class="chip neutral">Lab scripts</span><span class="chip neutral">Key Vault</span><span class="chip neutral">Remote Desktop</span></div>
+      <p class="part-meta"><span class="role presenter">Presenter</span> Run these in PowerShell 7 from your clone of the lab kit</p>
+      <div class="chips"><span class="chip neutral">PowerShell 7</span><span class="chip neutral">Azure CLI</span><span class="chip neutral">On-premises VM scripts</span><span class="chip neutral">Key Vault</span><span class="chip neutral">Remote Desktop</span></div>
     </div>
   </div>
-  <p>The lab is one Windows Server VM in Azure that plays the customer's on-premises server: IIS, SQL Server and Tomcat on one machine, running the portal and the treasury service with demo data. Your lab VM already exists: <code>vm-contoso-web01</code> in resource group <code>rg-contoso-onprem-swc</code>.</p>
-  <p>The lab kit – this guide, the lab scripts and the application – is the private repository <a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">zhshah/AlThuraya-App-Modernization-LabKit</a>. Run Part 1 from a clone of it: <code>git clone https://github.com/zhshah/AlThuraya-App-Modernization-LabKit.git</code>, then <code>cd AlThuraya-App-Modernization-LabKit</code>.</p>
+  <p>The lab is one Windows Server VM in Azure that mimics the customer's on-premises server: IIS, Tomcat and SQL Server on one machine, running the portal, the treasury service and their two databases with demo data. One script builds it: <code>scripts/Deploy-OnPremVM.ps1</code> (1.2). Your lab VM already exists: <code>vm-contoso-web01</code> in resource group <code>rg-contoso-onprem-swc</code>.</p>
+  <p>The lab kit – this guide, the on-premises VM scripts and the application – is the private repository <a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">zhshah/AlThuraya-App-Modernization-LabKit</a>. Run Part 1 from a clone of it: <code>git clone https://github.com/zhshah/AlThuraya-App-Modernization-LabKit.git</code>, then <code>cd AlThuraya-App-Modernization-LabKit</code>.</p>
 
   <article class="step" id="s1-1">
     <div class="step-head"><span class="step-num">1.1</span><h3>Sign in to Azure</h3><span class="step-time">5 min</span><label class="done-box"><input type="checkbox" data-step="s1-1">Done</label></div>
@@ -766,13 +772,20 @@ az group show -n rg-contoso-onprem-swc --query location -o tsv</code></pre>
   </article>
 
   <article class="step" id="s1-2">
-    <div class="step-head"><span class="step-num">1.2</span><h3>Build the lab (first time only)</h3><span class="step-time">35–50 min</span><label class="done-box"><input type="checkbox" data-step="s1-2">Done</label></div>
-    <p><strong>Your lab already exists – skip this step.</strong> Run it only if the lab was removed and you need to build it again:</p>
-    <pre><code>./onprem-vm/Deploy-Lab.ps1 -ResourceGroup rg-contoso-onprem-swc -VnetResourceGroup sweden-central-vnet -VnetName Sweden-vNet -SubnetName default</code></pre>
+    <div class="step-head"><span class="step-num">1.2</span><h3>Deploy the on-premises VM (first time only)</h3><span class="step-time">35–50 min</span><label class="done-box"><input type="checkbox" data-step="s1-2">Done</label></div>
+    <p>One script builds the customer's "on-premises" server in Azure: a VM on which the application and its databases run, as in the customer's data centre. <strong>Your lab VM already exists – skip this step.</strong> Run it only if the VM was removed:</p>
+    <pre><code>./scripts/Deploy-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc -VnetResourceGroup sweden-central-vnet -VnetName Sweden-vNet -SubnetName default</code></pre>
+    <p>A lab of your own, for example in another subscription, needs only a resource group name – the script then creates its own network: <code>./scripts/Deploy-OnPremVM.ps1 -ResourceGroup rg-contoso-lab</code>. Such a lab gets its own addresses: use the ones the script prints instead of the addresses in this guide.</p>
     <span class="lbl">What it does</span>
-    <p>Creates the VM in your existing network <code>Sweden-vNet</code> (open only to your internet address), installs IIS, SQL Server Express, Java 8 and Tomcat, builds and deploys both applications with demo data, and tests everything. It reuses the same names, so the addresses in this guide stay valid.</p>
+    <ul>
+      <li><strong>Azure:</strong> a Windows Server 2022 VM with a public address that is open only to your internet address. The VM password goes into a Key Vault.</li>
+      <li><strong>Server software:</strong> IIS, SQL Server 2022 Express, Java 8 and Tomcat 9.</li>
+      <li><strong>Application:</strong> builds both applications on the server, deploys the portal to IIS and the treasury service to Tomcat, and creates the two databases with the demo data.</li>
+      <li><strong>Test:</strong> the end-to-end test, through the public address.</li>
+    </ul>
+    <p class="small">The same subscription and resource group give the same names, so the addresses in this guide stay valid.</p>
     <div class="callout tip"><p><strong>It stopped with an error?</strong> Run the same command again – it continues where it stopped.</p></div>
-    <div class="expect"><p>At the end it prints the portal, treasury and Remote Desktop addresses – the same as in <a href="#values">Your lab at a glance</a>.</p></div>
+    <div class="expect"><p>At the end it prints the portal, treasury and Remote Desktop addresses – the same as in <a href="#values">Your lab at a glance</a> – and how to get the VM password.</p></div>
   </article>
 
   <article class="step" id="s1-3">
@@ -797,8 +810,8 @@ mstsc /v:contoso-onprem-0720c.swedencentral.cloudapp.azure.com</code></pre></li>
       <li><strong>Azure:</strong> for each team a resource group – <code>rg-finance-team1</code>, <code>rg-finance-team2</code>, … – in which the team is <strong>Owner</strong>: Copilot's deployment gives the apps' managed identities their roles. Check that App Service (Linux, B1), Azure SQL and Communication Services are available in Sweden Central.</li>
       <li><strong>Azure Policy:</strong> does a policy in that subscription switch off public network access? Add your exemption to your prompt in 4.2, for example <em>Tag every resource SecurityControl=Ignore.</em> – our test did this.</li>
       <li><strong>GitHub Copilot:</strong> a licence with premium requests for everyone, with agent mode allowed by their organization.</li>
-      <li><strong>Code:</strong> add every participant's GitHub account to <a href="https://github.com/zhshah/AlThuraya-App-Modernization-Lab">zhshah/AlThuraya-App-Modernization-Lab</a> (Settings → Collaborators; read access is enough).</li>
-      <li><strong>Send them this guide</strong> – <code>lab-guide.html</code> together with its <code>images</code> and <code>sample-plans</code> folders – and ask them to finish Part 2 before the event.</li>
+      <li><strong>Code:</strong> add every participant's GitHub account to <a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">zhshah/AlThuraya-App-Modernization-LabKit</a> (Settings → Collaborators; read access is enough).</li>
+      <li><strong>Send them this guide</strong> – the PDF, <code>docs/lab/lab-guide.pdf</code> – and ask them to finish Part 2 before the event. Their clone (2.2) also holds the interactive version, <code>docs/lab/lab-guide.html</code>.</li>
       <li><strong>On the day, give them</strong> their team name – and the VM password (from 1.3) if they want to look inside the server.</li>
     </ul>
   </article>
@@ -811,7 +824,7 @@ foreach ($rule in 'Allow-RDP-From-Presenter', 'Allow-HTTP-From-Presenter', 'Allo
     az network nsg rule update -g rg-contoso-onprem-swc --nsg-name nsg-vm-contoso-web01 -n $rule --source-address-prefixes $myIp -o none
 }
 "VM open to $myIp"
-./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData</code></pre>
+./scripts/Update-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData</code></pre>
     <span class="lbl">What it does</span>
     <p>The VM only accepts connections from allowed internet addresses. The first lines allow the venue's address – so everyone on the venue network can open the portal. The last line puts fresh demo data and the latest scripts on the VM (3–5 minutes) and starts the VM if it was stopped.</p>
     <div class="callout warn"><p><strong>The site doesn't load?</strong> Almost always the network changed. Run the first four lines again from the network you are on.</p></div>
@@ -857,7 +870,7 @@ code --install-extension ms-dotnettools.csdevkit</code></pre>
     <span class="lbl">Do – in a new PowerShell window</span>
     <pre><code>mkdir C:\Lab -Force
 cd C:\Lab
-git clone https://github.com/zhshah/AlThuraya-App-Modernization-Lab.git finance-portal
+git clone https://github.com/zhshah/AlThuraya-App-Modernization-LabKit.git finance-portal
 cd finance-portal
 git checkout -b modernize/<span class="v" data-v="team">team1</span>
 code .</code></pre>
@@ -868,8 +881,8 @@ code .</code></pre>
       <li>Open the VS Code terminal (<strong>Terminal → New Terminal</strong>) and sign in to Azure: <code>az login</code>. Use this terminal for all the following commands.</li>
     </ol>
     <span class="lbl">What you get</span>
-    <p>The customer's application exactly as it runs on the lab VM, in <code>C:\Lab\finance-portal</code>: <code>src/dotnet</code> (portal), <code>src/java/treasury-service</code>, <code>database</code> and <code>scripts</code>.</p>
-    <div class="expect"><p>The VS Code Explorer shows <strong>FINANCE-PORTAL</strong> with <code>src</code>, <code>database</code> and <code>scripts</code>. Work in this window for the rest of the lab: GitHub Copilot modernization works on the folder that is open in VS Code.</p></div>
+    <p>The lab kit, in <code>C:\Lab\finance-portal</code>: the customer's application exactly as it runs on the lab VM – <code>src/dotnet</code> (portal), <code>src/java/treasury-service</code> and <code>database</code> – plus <code>scripts</code> (the tests you run and the on-premises VM scripts) and <code>docs</code> (this guide).</p>
+    <div class="expect"><p>The VS Code Explorer shows <strong>FINANCE-PORTAL</strong> with <code>database</code>, <code>docs</code>, <code>scripts</code> and <code>src</code>. Work in this window for the rest of the lab: GitHub Copilot modernization works on the folder that is open in VS Code.</p></div>
     <div class="callout tip"><p><strong>Closed VS Code?</strong> Open the folder again: <strong>File → Open Folder…</strong> → <code>C:\Lab\finance-portal</code>.</p></div>
     <div class="callout warn"><p><strong>Never push to <code>main</code></strong> – it must stay unchanged for the next session. To start over, delete the <code>C:\Lab\finance-portal</code> folder and clone again.</p></div>
   </article>
@@ -1451,16 +1464,16 @@ $treasury = 'https://app-treasury-0720c-<span class="v" data-v="team">team1</spa
 
   <div class="card" id="reset">
     <h3>Reset and clean up</h3>
-    <pre><code>./onprem-vm/Update-LabApp.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData   <span class="cmt"># fresh demo data before the next session</span>
+    <pre><code>./scripts/Update-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc -ResetDemoData   <span class="cmt"># fresh demo data before the next session</span>
 az vm deallocate -g rg-contoso-onprem-swc -n vm-contoso-web01                       <span class="cmt"># pause the VM between events (stops compute costs)</span>
 az group delete -n rg-finance-team1 --yes --no-wait                                 <span class="cmt"># a team's Azure resources - repeat for team2, team3, ...</span>
-./onprem-vm/Remove-Lab.ps1 -ResourceGroup rg-contoso-onprem-swc                     <span class="cmt"># only when you no longer need the lab VM</span></code></pre>
-    <p class="small muted"><code>Update-LabApp.ps1</code> starts a paused VM automatically. The lab VM costs about USD 35 per month while it runs.</p>
+./scripts/Remove-OnPremVM.ps1 -ResourceGroup rg-contoso-onprem-swc                  <span class="cmt"># only when you no longer need the lab VM</span></code></pre>
+    <p class="small muted"><code>Update-OnPremVM.ps1</code> starts a paused VM automatically. The lab VM costs about USD 35 per month while it runs.</p>
   </div>
 
   <div class="card" id="tested">
     <h3>What was tested</h3>
-    <p><strong>5 October 2026 – the whole VS Code path, end to end by the GitHub Copilot modernization agent</strong> (version 1.24.0, Claude Opus 5.5), in a clone of the lab repository:</p>
+    <p><strong>5 October 2026 – the whole VS Code path, end to end by the GitHub Copilot modernization agent</strong> (version 1.24.0, Claude Opus 5.5), in a clone that held only the application – <code>src</code>, <code>database</code> and the participant scripts:</p>
     <ul>
       <li>QuickStart → <strong>Migrate to Azure</strong> → standard assessment: 5 findings in the treasury service, in a few minutes.</li>
       <li>Custom Assessment with Full analysis and Security: 14 issues; the six documents didn't arrive and it was cancelled at 99%.</li>
@@ -1475,13 +1488,13 @@ az group delete -n rg-finance-team1 --yes --no-wait                             
       <li>Code changes: all tasks succeeded – portal in about 105 minutes, treasury in 72 minutes.</li>
       <li>Data copy from the VM to Azure SQL with <code>scripts/Copy-DatabasesToAzureSql.ps1</code>: 19 tables / 1,902 rows and 7 tables / 279 rows identical – the alternative to the demo data, if you want the server's real data (<a href="04-deploy-and-verify.md">04-deploy-and-verify.md</a>).</li>
     </ul>
-    <div class="callout warn"><p><strong>Not tested yet – rehearse once before the first event:</strong> prompt A and B word for word – with your names, B1 and an existing resource group – and prompt B's extra security work.</p></div>
+    <div class="callout warn"><p><strong>Not tested yet – rehearse once before the first event:</strong> prompt A and B word for word (with your names, B1 and an existing resource group), prompt B's extra security work, and Parts 3–6 in a clone of the whole lab kit – our test clone held only the application.</p></div>
     <p class="small muted">This guide is set up for the lab VM <code>contoso-onprem-0720c</code> in resource group <code>rg-contoso-onprem-swc</code>. For a lab in another subscription or resource group, replace <code>0720c</code> and <code>rg-contoso-onprem-swc</code> in this file.</p>
   </div>
 </section>
 
 <footer>
-  <p>Application code: <a href="https://github.com/zhshah/AlThuraya-App-Modernization-Lab">zhshah/AlThuraya-App-Modernization-Lab</a>. Lab kit – this guide, the lab scripts and the application: <a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">zhshah/AlThuraya-App-Modernization-LabKit</a> (presenters). Keep the <code>images</code> and <code>sample-plans</code> folders next to this file – the screenshots and sample plans live there. Presenters: the Markdown files next to this guide (<a href="README.md">README.md</a> and the modules) are the detailed reference, including optional alternatives such as the Modernize CLI.</p>
+  <p>Repository: <a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">zhshah/AlThuraya-App-Modernization-LabKit</a> – this guide, the application, and <code>scripts/Deploy-OnPremVM.ps1</code>, which builds the on-premises VM. Keep the <code>images</code> and <code>sample-plans</code> folders next to this file – the screenshots and sample plans live there. Presenters: the Markdown files next to this guide (<a href="README.md">README.md</a> and the modules) are the detailed reference, including optional alternatives such as the Modernize CLI.</p>
   <p>All organisations, people, accounts and figures in the demo application are fictitious.</p>
 </footer>
 </main>
@@ -1502,10 +1515,11 @@ az group delete -n rg-finance-team1 --yes --no-wait                             
       <div class="pb-row"><span><b>SQL Server Express</b>Two databases &middot; Windows authentication and a SQL password</span><span class="pb-arrow">&rarr;</span><span><b>Azure SQL Database</b>Managed identities &ndash; no passwords</span></div>
       <div class="pb-row"><span><b>Local disk and Windows</b>Bank files and reports &middot; SMTP pickup folder &middot; Event Log</span><span class="pb-arrow">&rarr;</span><span><b>Azure services</b>Blob Storage &middot; Communication Services Email &middot; Application Insights</span></div>
     </div>
+    <p class="pb-note">Before: an Azure VM that mimics the customer&rsquo;s data centre &ndash; built from the lab kit with one command, <code>scripts/Deploy-OnPremVM.ps1</code>.</p>
     <p class="pb-people"><strong>People made the decisions:</strong> approve the migration, choose the scope, review the plans, answer Copilot&rsquo;s questions and sign in to Azure. Nobody edited the code or created a resource by hand.</p>
     <div class="pc-foot">
       <div><strong>Zahir Hussain Shah</strong><br>Sr. Solution Engineer, Cloud &amp; AI &ndash; Infra<br>Microsoft Qatar</div>
-      <div class="right">Lab kit: github.com/zhshah/AlThuraya-App-Modernization-LabKit<br>All organisations, people, accounts and figures in the demo application are fictitious.</div>
+      <div class="right">Lab kit: <a href="https://github.com/zhshah/AlThuraya-App-Modernization-LabKit">github.com/zhshah/AlThuraya-App-Modernization-LabKit</a><br>All organisations, people, accounts and figures<br>in the demo application are fictitious.</div>
     </div>
   </div>
 </section>
